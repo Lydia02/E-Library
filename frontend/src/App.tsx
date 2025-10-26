@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ThemeToggle from './components/ThemeToggle'
 import HomePage from './pages/HomePage'
+import BooksPage from './pages/BooksPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
@@ -19,6 +20,7 @@ function App() {
         <div style={{ minHeight: 'calc(100vh - 200px)', paddingTop: '80px' }}>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/books" element={<BooksPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
