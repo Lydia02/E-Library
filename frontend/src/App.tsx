@@ -5,6 +5,7 @@ import Footer from './components/Footer'
 import ThemeToggle from './components/ThemeToggle'
 import HomePage from './pages/HomePage'
 import BooksPage from './pages/BooksPage'
+import BookDetailPage from './pages/BookDetailPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
@@ -21,6 +22,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/books" element={<BooksPage />} />
+            <Route path="/books/:id" element={<BookDetailPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
