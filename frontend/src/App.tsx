@@ -12,6 +12,7 @@ import LibraryPage from './pages/LibraryPage'
 import AddBookPage from './pages/AddBookPage'
 import EditBookPage from './pages/EditBookPage'
 import AddCommunityBookPage from './pages/AddCommunityBookPage'
+import FavoritesPage from './pages/FavoritesPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
@@ -35,6 +36,7 @@ function App() {
             <Route path="/add-book" element={<AddBookPage />} />
             <Route path="/edit-book/:id" element={<EditBookPage />} />
             <Route path="/add-community-book" element={<AddCommunityBookPage />} />
+            <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
