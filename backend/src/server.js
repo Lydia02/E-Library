@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import errorHandler from './middleware/errorHandler.js';
+import authRoutes from './routes/authRoutes.js';
 
 const app = express();
 
@@ -36,9 +37,11 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Routes
+app.use('/api/auth', authRoutes);
+
 // Routes will be added in subsequent branches
 // app.use('/api/books', bookRoutes);
-// app.use('/api/auth', authRoutes);
 // app.use('/api/favorites', favoriteRoutes);
 // app.use('/api/user-books', userBookRoutes);
 // app.use('/api/admin', adminRoutes);
