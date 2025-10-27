@@ -5,6 +5,7 @@ import errorHandler from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import bookRoutes from './routes/bookRoutes.js';
 import favoriteRoutes from './routes/favoriteRoutes.js';
+import userBookRoutes from './routes/userBookRoutes.js';
 
 const app = express();
 
@@ -43,9 +44,9 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/favorites', favoriteRoutes);
+app.use('/api/user-books', userBookRoutes);
 
 // Routes will be added in subsequent branches
-// app.use('/api/user-books', userBookRoutes);
 // app.use('/api/admin', adminRoutes);
 
 // Error handling middleware (must be last)
