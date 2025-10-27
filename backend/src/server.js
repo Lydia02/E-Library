@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
 
@@ -42,7 +43,7 @@ app.get('/health', (req, res) => {
 // app.use('/api/user-books', userBookRoutes);
 // app.use('/api/admin', adminRoutes);
 
-// Error handling middleware will be added in Branch 03
-// app.use(errorHandler);
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 export default app;
