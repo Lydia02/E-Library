@@ -1,7 +1,7 @@
 import express from 'express';
 import * as bookController from '../controllers/bookController.js';
 import { authenticate, optionalAuth } from '../middleware/auth.js';
-// import reviewRoutes from './reviewRoutes.js'; // Will be added in Branch 09
+import reviewRoutes from './reviewRoutes.js';
 
 const router = express.Router();
 
@@ -21,7 +21,7 @@ router.get('/:id', optionalAuth, bookController.getBook);
 router.get('/admin/stats', authenticate, bookController.getBooksStats);
 router.delete('/admin/clear-all', authenticate, bookController.clearAllBooksData);
 
-// Review routes nested under books (will be added in Branch 09)
-// router.use('/:bookId/reviews', reviewRoutes);
+// Review routes nested under books
+router.use('/:bookId/reviews', reviewRoutes);
 
 export default router;
