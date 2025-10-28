@@ -1,5 +1,7 @@
 # E-library
 
+*"Empowering African learners through accessible digital education"*
+
 A digital library platform that provides students and readers with easy access to educational materials anytime, anywhere.
 
 ## African Context
@@ -9,9 +11,9 @@ By promoting open access and resource sharing, the e-Library supports digital le
 
 ## Team Members
 
-- [Lydia Subuola Ojoawo] - [Role] - [Student ID]
-- [Nadia Teta] - [Role] - [Student ID]
-- [Ann Dumo Peter Lau] - [Role] - [Student ID]
+- *Lydia Subuola Ojoawo* - Full Stack Developer & Project Lead
+- *Nadia Teta* - Frontend Developer & UI/UX Designer
+- *Ann Dumo Peter Lau* - Backend Developer & Database Administrator
 
 ## Project Overview
 
@@ -25,53 +27,137 @@ Users can explore available books, view details (author, category, publication d
 
 ### Core Features
 - Book Catalog: Browse and search for books by title, author, or category.
-- Add book: Admins can add or manage e-books and documents.
+- Add book: Admins and signed in users can add or manage e-books and documents.
 - User Authentication: Register, log in, and manage user access.
+
+### Project Tagline/Slogan
+*“A Library in Your Pocket”*
 
 ## Technology Stack
 
-- **Backend**: [e.g., Python/Django, Node.js/Express]
-- **Frontend**: [Typescript, React]
-- **Database**: [e.g., PostgreSQL, MongoDB]
-- **Other**: [Any other key technologies]
+- *Frontend*: React 18, TypeScript, Vite, Redux Toolkit
+- *Backend*: Node.js 20+, Express 5.1.0, ES6 Modules
+- *Database*: Firebase Firestore (NoSQL)
+- *Authentication*: Firebase Authentication
+- *Styling*: CSS3, Responsive Design
+- *Version Control*: Git, GitHub
+- *DevOps*: GitHub Projects, Branch Protection, CI/CD (planned)
 
 ## Getting Started
 
 ### Prerequisites
-- [e.g., Python 3.9+, Node.js 16+]
-- [Any other requirements]
+- Node.js 20+ and npm
+- Firebase account with Firestore enabled
+- Git for version control
 
 ### Installation
 
 1. Clone the repository
-```bash
+```sh
    git clone https://github.com/Lydia02/E-Library.git
    cd E-Library
 ```
 
-2. Install dependencies
-```sh
+2. Install frontend dependencies
+```bash
+cd E-Library/frontend
 npm install
 ```
-3. Create an environment file
-Create a .env file in the root directory and add:
-```sh
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
+
+3. Install backend dependencies
+```bash
+cd ../backend
+npm install
 ```
 
-4. Run the application
+4. Configure environment variables
+   - Create .env file in frontend/ directory (see .env.example)
+   - Create .env file in backend/ directory (see .env.example)
+   - Add your Firebase configuration credentials
+
+5. Run the application
+
+*Frontend:*
 ```bash
-   npm run dev
+cd frontend
+npm run dev
+```
+
+*Backend:*
+```bash
+cd backend
+npm run dev
 ```
 
 ### Usage
 
-[How to use the application - include examples if applicable]
+How to use the application:
+
+1. Open http://localhost:5173 to access the frontend.
+2. Register a new account
+![Register New User](./frontend/public/screenshots/register.png)
+
+---
+
+3. log in
+![Login](./frontend/public/screenshots/login.png)
+
+---
+4. Browse books
+![Browse Books](./frontend/public/screenshots/browse-books.png)
+
+---
+5. Add a book
+![Add Book](./frontend/public/screenshots/add-book.png)
+
+---
+6. Favorite books
+![Favorite books](./frontend/public/screenshots/favorites.png)
+4. Admins can manage users and books from the dashboard.
 
 ## Project Structure
-```
+
 E-Library/
+|
+├── backend
+│   ├── src
+│   │   ├── config
+│   │   │   └── firebase.js
+│   │   ├── controllers
+│   │   │   ├── adminController.js
+│   │   │   ├── authController.js
+│   │   │   ├── bookController.js
+│   │   │   ├── favoriteController.js
+│   │   │   ├── reviewController.js
+│   │   │   └── userBookController.js
+│   │   ├── middleware
+│   │   │   ├── auth.js
+│   │   │   └── errorHandler.js
+│   │   ├── routes
+│   │   │   ├── adminRoutes.js
+│   │   │   ├── authRoutes.js
+│   │   │   ├── bookRoutes.js
+│   │   │   ├── favoriteRoutes.js
+│   │   │   ├── reviewRoutes.js
+│   │   │   └── userBookRoutes.js
+│   │   ├── scripts
+│   │   │   └── populateBooks.js
+│   │   ├── services
+│   │   │   ├── bookService.js
+│   │   │   ├── favoriteService.js
+│   │   │   ├── profileService.js
+│   │   │   ├── reviewService.js
+│   │   │   └── userBookService.js
+│   │   ├── utils
+│   │   │   ├── pagination.js
+│   │   │   ├── response.js
+│   │   │   └── validation.js
+│   │   ├── index.js
+│   │   └── server.js
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── package.json
+│   └── README.md 
 │
 ├── frontend/
 │   ├── public/
@@ -170,12 +256,13 @@ E-Library/
 ├── LICENSE
 ├── MIGRATION_PLAN.md
 └── README.md
-```
+
 
 ## Links
 
-- [Project Board](link-to-github-projects)
-- [Documentation](if applicable)
+- [Project Board](https://github.com/Lydia02/E-Library/projects)
+- [Repository](https://github.com/Lydia02/E-Library)
+- [Issues](https://github.com/Lydia02/E-Library/issues)
 
 ## License
 
