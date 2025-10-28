@@ -62,4 +62,5 @@ temp/
 assets/temp/
 *.lockb
 
-
+package-lock.json
+serviceAccountKey.json
