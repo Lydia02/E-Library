@@ -1,5 +1,7 @@
 # E-library
 
+**"Empowering African learners through accessible digital education"**
+
 A digital library platform that provides students and readers with easy access to educational materials anytime, anywhere.
 
 ## African Context
@@ -9,9 +11,9 @@ By promoting open access and resource sharing, the e-Library supports digital le
 
 ## Team Members
 
-- [Lydia Subuola Ojoawo] - [Role] - [Student ID]
-- [Nadia Teta] - [Role] - [Student ID]
-- [Ann Dumo Peter Lau] - [Role] - [Student ID]
+- **Lydia Subuola Ojoawo** - Full Stack Developer & Project Lead
+- **Nadia Teta** - Frontend Developer & UI/UX Designer
+- **Ann Dumo Peter Lau** - Backend Developer & Database Administrator
 
 ## Project Overview
 
@@ -30,16 +32,20 @@ Users can explore available books, view details (author, category, publication d
 
 ## Technology Stack
 
-- **Backend**: [e.g., Python/Django, Node.js/Express]
-- **Frontend**: [Typescript, React]
-- **Database**: [e.g., PostgreSQL, MongoDB]
-- **Other**: [Any other key technologies]
+- **Frontend**: React 18, TypeScript, Vite, Redux Toolkit
+- **Backend**: Node.js 20+, Express 5.1.0, ES6 Modules
+- **Database**: Firebase Firestore (NoSQL)
+- **Authentication**: Firebase Authentication
+- **Styling**: CSS3, Responsive Design
+- **Version Control**: Git, GitHub
+- **DevOps**: GitHub Projects, Branch Protection, CI/CD (planned)
 
 ## Getting Started
 
 ### Prerequisites
-- [e.g., Python 3.9+, Node.js 16+]
-- [Any other requirements]
+- Node.js 20+ and npm
+- Firebase account with Firestore enabled
+- Git for version control
 
 ### Installation
 
@@ -49,20 +55,35 @@ Users can explore available books, view details (author, category, publication d
    cd E-Library
 ```
 
-2. Install dependencies
-```sh
+2. Install frontend dependencies
+```bash
+cd E-Library/frontend
 npm install
 ```
-3. Create an environment file
-Create a .env file in the root directory and add:
-```sh
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
+
+3. Install backend dependencies
+```bash
+cd ../backend
+npm install
 ```
 
-4. Run the application
+4. Configure environment variables
+   - Create `.env` file in `frontend/` directory (see `.env.example`)
+   - Create `.env` file in `backend/` directory (see `.env.example`)
+   - Add your Firebase configuration credentials
+
+5. Run the application
+
+**Frontend:**
 ```bash
-   npm run dev
+cd frontend
+npm run dev
+```
+
+**Backend:**
+```bash
+cd backend
+npm run dev
 ```
 
 ### Usage
@@ -174,8 +195,9 @@ E-Library/
 
 ## Links
 
-- [Project Board](link-to-github-projects)
-- [Documentation](if applicable)
+- [Project Board](https://github.com/Lydia02/E-Library/projects)
+- [Repository](https://github.com/Lydia02/E-Library)
+- [Issues](https://github.com/Lydia02/E-Library/issues)
 
 ## License
 
