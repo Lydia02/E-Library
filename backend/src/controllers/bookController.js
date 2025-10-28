@@ -2,7 +2,7 @@ import * as bookService from '../services/bookService.js';
 import { sendSuccess, sendCreated, sendNotFound, sendBadRequest } from '../utils/response.js';
 import { getPaginationParams, createPaginationMeta } from '../utils/pagination.js';
 import { validateBookData } from '../utils/validation.js';
-// import { getBooksCount, clearAllBooks } from '../scripts/populateBooks.js'; // Will be added in Branch 12
+import { getBooksCount, clearAllBooks } from '../scripts/populateBooks.js';
 
 const getBooks = async (req, res, next) => {
   try {
@@ -104,8 +104,7 @@ const deleteBook = async (req, res, next) => {
 
 const getBooksStats = async (req, res, next) => {
   try {
-    // TODO: Will use getBooksCount from populateBooks.js in Branch 12
-    const totalBooks = await bookService.getBooksCount();
+    const totalBooks = await getBooksCount();
     const stats = {
       totalBooks,
       message: 'Database-driven book management active'
@@ -118,9 +117,8 @@ const getBooksStats = async (req, res, next) => {
 
 const clearAllBooksData = async (req, res, next) => {
   try {
-    // TODO: Will use clearAllBooks from populateBooks.js in Branch 12
-    // For now, return a placeholder response
-    return sendSuccess(res, 200, { message: 'Clear all books functionality will be implemented in Branch 12' });
+    const result = await clearAllBooks();
+    return sendSuccess(res, 200, result, 'All books cleared successfully');
   } catch (error) {
     next(error);
   }
