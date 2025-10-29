@@ -95,28 +95,29 @@ How to use the application:
 
 1. Open http://localhost:5173 to access the frontend.
 2. Register a new account
-![Register New User](./frontend/public/screenshots/register.png)
+![Register New User](./frontend/public/Screenshots/register.png)
 
 ---
 
 3. log in
-![Login](./frontend/public/screenshots/login.png)
+![Login](./frontend/public/Screenshots/login.png)
 
 ---
 4. Browse books
-![Browse Books](./frontend/public/screenshots/browse-books.png)
+![Browse Books](./frontend/public/Screenshots/browse-books.png)
 
 ---
 5. Add a book
-![Add Book](./frontend/public/screenshots/add-book.png)
+![Add Book](./frontend/public/Screenshots/add-book.png)
 
 ---
 6. Favorite books
-![Favorite books](./frontend/public/screenshots/favorites.png)
+![Favorite books](./frontend/public/Screenshots/favorites.png)
 4. Admins can manage users and books from the dashboard.
 
 ## Project Structure
 
+```
 E-Library/
 |
 ├── backend
@@ -256,7 +257,7 @@ E-Library/
 ├── LICENSE
 ├── MIGRATION_PLAN.md
 └── README.md
-
+```
 
 ## Links
 
