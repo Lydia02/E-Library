@@ -91,5 +91,3 @@ assets/temp/
 *.lockb
 .turbo/
 .vercel/
-
-package-lock.json
