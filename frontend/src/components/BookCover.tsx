@@ -43,7 +43,7 @@ const BookCover: React.FC<BookCoverProps> = ({
     const style = coverStyles[styleIndex];
     
     const words = title.split(' ');
-    let titleLines = [];
+    const titleLines = [];
     let currentLine = '';
     
     for (const word of words) {
@@ -136,6 +136,7 @@ const BookCover: React.FC<BookCoverProps> = ({
     };
 
     getPotentialCovers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title, author, isbn, customCoverUrl, genre]);
 
   // Handle image load errors - try next image source

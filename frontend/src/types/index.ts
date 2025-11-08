@@ -15,7 +15,7 @@ export interface User {
   booksRead?: number;
   currentlyReading?: number;
   isPrivate?: boolean;
-  preferences?: Record<string, any>;
+  preferences?: Record<string, unknown>;
 }
 
 export interface Book {

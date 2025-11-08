@@ -16,7 +16,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, onToggleFavorite, isFavorite 
     try {
       // Use encodeURIComponent for Unicode support, then convert to base64
       return btoa(unescape(encodeURIComponent(svgString)));
-    } catch (e) {
+    } catch {
       // Fallback: use URL encoding if base64 fails
       return encodeURIComponent(svgString);
     }
@@ -25,6 +25,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, onToggleFavorite, isFavorite 
   // Generic book cover generator with warm colors
   const getGenericBookCover = (title: string) => {
     // Sanitize title to avoid encoding issues
+    // eslint-disable-next-line no-control-regex
     const safeTitle = title.replace(/[^\x00-\x7F]/g, ''); // Remove non-ASCII characters
 
     const covers = [

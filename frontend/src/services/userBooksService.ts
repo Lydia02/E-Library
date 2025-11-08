@@ -25,7 +25,7 @@ api.interceptors.request.use(
           const user = JSON.parse(userStr);
           token = user.token;
           console.log('token from user object:', token);
-        } catch (e) {
+        } catch {
           console.warn('Failed to parse user from localStorage');
         }
       }
@@ -84,9 +84,10 @@ class UserBooksService {
       const response = await api.get('/user-books');
       // Handle the correct response structure from userBookController
       return response.data.data?.userBooks || response.data.userBooks || [];
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching user books:', error);
-      throw new Error(error.response?.data?.message || 'Failed to fetch user books');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to fetch user books');
     }
   }
 
@@ -95,9 +96,10 @@ class UserBooksService {
     try {
       const response = await api.get('/user-books/stats');
       return response.data.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching user book stats:', error);
-      throw new Error(error.response?.data?.message || 'Failed to fetch user book stats');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to fetch user book stats');
     }
   }
 
@@ -110,10 +112,11 @@ class UserBooksService {
       console.log('Response data:', response.data);
       console.log('Response data.data:', response.data.data);
       return response.data.data?.userBook || response.data.data || response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding user book:', error);
-      console.error('Error details:', error.response?.data);
-      throw new Error(error.response?.data?.message || 'Failed to add book');
+      const err = error as { response?: { data?: { message?: string } } };
+      console.error('Error details:', err.response?.data);
+      throw new Error(err.response?.data?.message || 'Failed to add book');
     }
   }
 
@@ -122,9 +125,10 @@ class UserBooksService {
     try {
       const response = await api.get(`/user-books/${bookId}`);
       return response.data.data?.userBook || response.data.data || response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching user book:', error);
-      throw new Error(error.response?.data?.message || 'Failed to fetch book');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to fetch book');
     }
   }
 
@@ -133,9 +137,10 @@ class UserBooksService {
     try {
       const response = await api.put(`/user-books/${bookId}`, updates);
       return response.data.data?.userBook || response.data.data || response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating user book:', error);
-      throw new Error(error.response?.data?.message || 'Failed to update book');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to update book');
     }
   }
 
@@ -143,16 +148,17 @@ class UserBooksService {
   static async deleteUserBook(bookId: string): Promise<void> {
     try {
       await api.delete(`/user-books/${bookId}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting user book:', error);
-      throw new Error(error.response?.data?.message || 'Failed to delete book');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to delete book');
     }
   }
 
   // Update reading status
   static async updateReadingStatus(bookId: string, status: ReadingStatus): Promise<UserBook> {
     try {
-      const updates: any = { status };
+      const updates: Record<string, unknown> = { status };
       
       // Set dates based on status
       if (status === 'currently-reading') {
@@ -163,11 +169,12 @@ class UserBooksService {
         }
         updates.dateFinished = new Date().toISOString();
       }
-      
+
       return await this.updateUserBook(bookId, updates);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating reading status:', error);
-      throw new Error(error.response?.data?.message || 'Failed to update reading status');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to update reading status');
     }
   }
 
@@ -175,9 +182,10 @@ class UserBooksService {
   static async updateBookRating(bookId: string, rating: number): Promise<UserBook> {
     try {
       return await this.updateUserBook(bookId, { personalRating: rating });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating book rating:', error);
-      throw new Error(error.response?.data?.message || 'Failed to update rating');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to update rating');
     }
   }
 }

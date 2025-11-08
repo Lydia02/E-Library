@@ -19,6 +19,7 @@ const BookDetailPage: React.FC = () => {
     fetchBook();
     checkFavoriteStatus();
     checkUserRating();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const checkUserRating = () => {

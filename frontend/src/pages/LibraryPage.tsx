@@ -117,10 +117,12 @@ const LibraryPage: React.FC = () => {
     } else {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   useEffect(() => {
     filterAndSortBooks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userBooks, activeFilter, searchQuery, sortBy]);
 
   const fetchUserBooks = async () => {
@@ -160,14 +162,16 @@ const LibraryPage: React.FC = () => {
     // Apply sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'title':
+        case 'title': {
           const titleA = a.title || a.book?.title || '';
           const titleB = b.title || b.book?.title || '';
           return titleA.localeCompare(titleB);
-        case 'author':
+        }
+        case 'author': {
           const authorA = a.author || a.book?.author || '';
           const authorB = b.author || b.book?.author || '';
           return authorA.localeCompare(authorB);
+        }
         case 'rating':
           return (b.personalRating || 0) - (a.personalRating || 0);
         default:
@@ -396,7 +400,7 @@ const LibraryPage: React.FC = () => {
                       <select
                         className="form-select"
                         value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as any)}
+                        onChange={(e) => setSortBy(e.target.value as 'title' | 'author' | 'rating')}
                       >
                         <option value="title">Title A-Z</option>
                         <option value="author">Author A-Z</option>

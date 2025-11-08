@@ -49,6 +49,7 @@ const EditBookPage: React.FC = () => {
     if (id) {
       loadBookData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, id, navigate]);
 
   const loadBookData = async () => {

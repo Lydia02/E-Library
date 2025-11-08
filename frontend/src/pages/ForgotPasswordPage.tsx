@@ -35,8 +35,9 @@ const ForgotPasswordPage: React.FC = () => {
           ` (Development: Reset token is ${response.data.data.resetToken})`
         );
       }
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to send password reset email');
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      setError(err.response?.data?.message || 'Failed to send password reset email');
     } finally {
       setIsSubmitting(false);
     }

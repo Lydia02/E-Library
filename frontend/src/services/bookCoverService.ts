@@ -46,9 +46,9 @@ class BookCoverService {
       sources.push(`https://covers.openlibrary.org/b/isbn/${cleanIsbn}-M.jpg`);
     }
 
-   
+
     if (title && author) {
-    
+      // Reserved for future implementation
     }
 
 
@@ -93,7 +93,7 @@ class BookCoverService {
   /**
    * Get Google Books API data (requires server-side proxy due to CORS)
    */
-  static async getGoogleBooksData(title: string, author?: string): Promise<any> {
+  static async getGoogleBooksData(title: string, author?: string): Promise<unknown> {
     try {
       const query = encodeURIComponent(`${title} ${author || ''}`);
       const response = await fetch(
@@ -115,11 +115,12 @@ class BookCoverService {
   /**
    * Extract cover URLs from Google Books API response
    */
-  static extractGoogleBooksCovers(apiResponse: any): string[] {
+  static extractGoogleBooksCovers(apiResponse: unknown): string[] {
     const covers: string[] = [];
-    
-    if (apiResponse?.items) {
-      apiResponse.items.forEach((item: any) => {
+
+    const response = apiResponse as { items?: Array<{ volumeInfo?: { imageLinks?: Record<string, string> } }> };
+    if (response?.items) {
+      response.items.forEach((item) => {
         if (item.volumeInfo?.imageLinks) {
           const links = item.volumeInfo.imageLinks;
           
