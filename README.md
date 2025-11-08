@@ -89,6 +89,29 @@ cd backend
 npm run dev
 ```
 
+### Running with Docker
+## Prerequisite
+Install Docker: https://docs.docker.com/get-docker/
+
+1. Build and start all services
+```sh
+docker-compose up --build
+```
+
+2. View contsiner logs
+```sh
+docker-compose logs -f
+```
+
+3. To stop the application:
+```sh
+docker-compose down
+```
+4. Rebuild after making code changes
+```sh
+docker-compose up --build -d
+```
+
 ### Usage
 
 How to use the application:
