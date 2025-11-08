@@ -124,6 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Update local user state - merge the updated profile data with existing user
       if (user && updatedProfile) {
         // Extract only user-related fields from the response (exclude stats if present)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { stats: _stats, ...userFields } = updatedProfile as unknown as { stats?: unknown; [key: string]: unknown };
         const updatedUser = { ...user, ...userFields };
         console.log('AuthContext: Setting updated user:', updatedUser);

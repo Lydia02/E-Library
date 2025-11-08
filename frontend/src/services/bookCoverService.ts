@@ -24,7 +24,7 @@ class BookCoverService {
           this.coverCache.set(cacheKey, source);
           return source;
         }
-      } catch (error) {
+      } catch {
         console.log(`Cover source failed: ${source}`);
         continue;
       }

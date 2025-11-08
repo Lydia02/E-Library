@@ -21,8 +21,7 @@ const ProfilePage: React.FC = () => {
       return;
     }
     fetchUserData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, navigate, user]); // Added user dependency to re-fetch when user updates
+  }, [isAuthenticated, navigate, user]);
 
   const fetchUserData = async () => {
     setLoading(true);

@@ -28,7 +28,7 @@ const LibraryPage: React.FC = () => {
     
     // Split title into lines for better formatting
     const words = title.split(' ');
-    let titleLines = [];
+    const titleLines = [];
     let currentLine = '';
     
     for (const word of words) {
@@ -117,7 +117,6 @@ const LibraryPage: React.FC = () => {
     } else {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   useEffect(() => {

@@ -33,7 +33,6 @@ const BooksPage: React.FC = () => {
     if (isAuthenticated) {
       loadFavorites();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   const fetchBooks = async () => {
@@ -301,7 +300,7 @@ const BooksPage: React.FC = () => {
               <select
                 className="form-select"
                 value={filters.sortBy}
-                onChange={(e) => dispatch(setSortBy(e.target.value as any))}
+                onChange={(e) => dispatch(setSortBy(e.target.value as 'title' | 'author' | 'rating' | 'price' | 'publicationDate'))}
               >
                 <option value="title">Title</option>
                 <option value="author">Author</option>

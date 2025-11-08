@@ -18,7 +18,6 @@ const FavoritesPage: React.FC = () => {
     } else {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   const fetchFavoriteBooks = async () => {
