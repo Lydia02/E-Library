@@ -33,6 +33,7 @@ export interface Book {
   price: number;
   isbn: string;
   pages: number;
+  pageCount?: number; // Alias for pages
   language: string;
   publisher: string;
   viewCount?: number;
