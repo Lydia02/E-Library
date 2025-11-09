@@ -1,6 +1,6 @@
 # E-library
 
-**"Empowering African learners through accessible digital education"**
+*"Empowering African learners through accessible digital education"*
 
 A digital library platform that provides students and readers with easy access to educational materials anytime, anywhere.
 
@@ -11,9 +11,9 @@ By promoting open access and resource sharing, the e-Library supports digital le
 
 ## Team Members
 
-- **Lydia Subuola Ojoawo** - Full Stack Developer & Project Lead
-- **Nadia Teta** - Frontend Developer & UI/UX Designer
-- **Ann Dumo Peter Lau** - Backend Developer & Database Administrator
+- *Lydia Subuola Ojoawo* - Full Stack Developer & Project Lead
+- *Nadia Teta* - Frontend Developer & UI/UX Designer
+- *Ann Dumo Peter Lau* - Backend Developer & Database Administrator
 
 ## Project Overview
 
@@ -27,18 +27,21 @@ Users can explore available books, view details (author, category, publication d
 
 ### Core Features
 - Book Catalog: Browse and search for books by title, author, or category.
-- Add book: Admins can add or manage e-books and documents.
+- Add book: Admins and signed in users can add or manage e-books and documents.
 - User Authentication: Register, log in, and manage user access.
+
+### Project Tagline/Slogan
+*“A Library in Your Pocket”*
 
 ## Technology Stack
 
-- **Frontend**: React 18, TypeScript, Vite, Redux Toolkit
-- **Backend**: Node.js 20+, Express 5.1.0, ES6 Modules
-- **Database**: Firebase Firestore (NoSQL)
-- **Authentication**: Firebase Authentication
-- **Styling**: CSS3, Responsive Design
-- **Version Control**: Git, GitHub
-- **DevOps**: GitHub Projects, Branch Protection, CI/CD (planned)
+- *Frontend*: React 18, TypeScript, Vite, Redux Toolkit
+- *Backend*: Node.js 20+, Express 5.1.0, ES6 Modules
+- *Database*: Firebase Firestore (NoSQL)
+- *Authentication*: Firebase Authentication
+- *Styling*: CSS3, Responsive Design
+- *Version Control*: Git, GitHub
+- *DevOps*: GitHub Projects, Branch Protection, CI/CD (planned)
 
 ## Getting Started
 
@@ -50,7 +53,7 @@ Users can explore available books, view details (author, category, publication d
 ### Installation
 
 1. Clone the repository
-```bash
+```sh
    git clone https://github.com/Lydia02/E-Library.git
    cd E-Library
 ```
@@ -68,19 +71,19 @@ npm install
 ```
 
 4. Configure environment variables
-   - Create `.env` file in `frontend/` directory (see `.env.example`)
-   - Create `.env` file in `backend/` directory (see `.env.example`)
+   - Create .env file in frontend/ directory (see .env.example)
+   - Create .env file in backend/ directory (see .env.example)
    - Add your Firebase configuration credentials
 
 5. Run the application
 
-**Frontend:**
+*Frontend:*
 ```bash
 cd frontend
 npm run dev
 ```
 
-**Backend:**
+*Backend:*
 ```bash
 cd backend
 npm run dev
@@ -88,11 +91,74 @@ npm run dev
 
 ### Usage
 
-[How to use the application - include examples if applicable]
+How to use the application:
+
+1. Open http://localhost:5173 to access the frontend.
+2. Register a new account
+![Register New User](./frontend/public/Screenshots/register.png)
+
+---
+
+3. log in
+![Login](./frontend/public/Screenshots/login.png)
+
+---
+4. Browse books
+![Browse Books](./frontend/public/Screenshots/browse-books.png)
+
+---
+5. Add a book
+![Add Book](./frontend/public/Screenshots/add-book.png)
+
+---
+6. Favorite books
+![Favorite books](./frontend/public/Screenshots/favorites.png)
+4. Admins can manage users and books from the dashboard.
 
 ## Project Structure
+
 ```
 E-Library/
+|
+├── backend
+│   ├── src
+│   │   ├── config
+│   │   │   └── firebase.js
+│   │   ├── controllers
+│   │   │   ├── adminController.js
+│   │   │   ├── authController.js
+│   │   │   ├── bookController.js
+│   │   │   ├── favoriteController.js
+│   │   │   ├── reviewController.js
+│   │   │   └── userBookController.js
+│   │   ├── middleware
+│   │   │   ├── auth.js
+│   │   │   └── errorHandler.js
+│   │   ├── routes
+│   │   │   ├── adminRoutes.js
+│   │   │   ├── authRoutes.js
+│   │   │   ├── bookRoutes.js
+│   │   │   ├── favoriteRoutes.js
+│   │   │   ├── reviewRoutes.js
+│   │   │   └── userBookRoutes.js
+│   │   ├── scripts
+│   │   │   └── populateBooks.js
+│   │   ├── services
+│   │   │   ├── bookService.js
+│   │   │   ├── favoriteService.js
+│   │   │   ├── profileService.js
+│   │   │   ├── reviewService.js
+│   │   │   └── userBookService.js
+│   │   ├── utils
+│   │   │   ├── pagination.js
+│   │   │   ├── response.js
+│   │   │   └── validation.js
+│   │   ├── index.js
+│   │   └── server.js
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── package.json
+│   └── README.md 
 │
 ├── frontend/
 │   ├── public/
