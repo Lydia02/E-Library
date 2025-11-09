@@ -103,4 +103,7 @@ jobs:
         run: docker build -t elibrary-backend:latest ./backend
 
       - name: Test docker-compose configuration
-        run: docker compose config
+        run: |
+         
+          touch backend/.env
+          docker compose config --quiet
