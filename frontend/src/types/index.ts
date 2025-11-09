@@ -15,7 +15,7 @@ export interface User {
   booksRead?: number;
   currentlyReading?: number;
   isPrivate?: boolean;
-  preferences?: Record<string, any>;
+  preferences?: Record<string, unknown>;
 }
 
 export interface Book {
@@ -33,6 +33,7 @@ export interface Book {
   price: number;
   isbn: string;
   pages: number;
+  pageCount?: number; // Alias for pages
   language: string;
   publisher: string;
   viewCount?: number;

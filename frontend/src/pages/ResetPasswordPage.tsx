@@ -80,8 +80,9 @@ const ResetPasswordPage: React.FC = () => {
           state: { message: 'Password reset successfully. Please login with your new password.' }
         });
       }, 3000);
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to reset password');
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      setError(err.response?.data?.message || 'Failed to reset password');
     } finally {
       setIsSubmitting(false);
     }

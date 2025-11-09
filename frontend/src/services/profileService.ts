@@ -12,7 +12,7 @@ interface ProfileData {
   favoriteGenres?: string[];
   readingGoal?: number;
   isPrivate?: boolean;
-  preferences?: Record<string, any>;
+  preferences?: Record<string, unknown>;
   photoURL?: string;
 }
 
@@ -56,9 +56,10 @@ export const profileService = {
     try {
       const response = await apiClient.get('/auth/profile');
       return response.data.profile;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Get profile error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to get profile');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to get profile');
     }
   },
 
@@ -72,10 +73,11 @@ export const profileService = {
       console.log('Profile update response:', response.data);
 
       return response.data.data.profile;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Update profile error:', error);
-      console.error('Error response:', error.response?.data);
-      throw new Error(error.response?.data?.message || error.response?.data?.error?.message || 'Failed to update profile');
+      const err = error as { response?: { data?: { message?: string; error?: { message?: string } } } };
+      console.error('Error response:', err.response?.data);
+      throw new Error(err.response?.data?.message || err.response?.data?.error?.message || 'Failed to update profile');
     }
   },
 
@@ -86,22 +88,24 @@ export const profileService = {
     try {
       const response = await apiClient.put('/auth/profile/reading-goal', { goal });
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Update reading goal error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to update reading goal');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to update reading goal');
     }
   },
 
   /**
    * Update user preferences
    */
-  async updatePreferences(preferences: Record<string, any>): Promise<{ message: string }> {
+  async updatePreferences(preferences: Record<string, unknown>): Promise<{ message: string }> {
     try {
       const response = await apiClient.put('/auth/profile/preferences', { preferences });
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Update preferences error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to update preferences');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to update preferences');
     }
   },
 
@@ -112,9 +116,10 @@ export const profileService = {
     try {
       const response = await apiClient.get('/auth/profile/stats');
       return response.data.stats;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Get detailed stats error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to get statistics');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to get statistics');
     }
   },
 
@@ -127,9 +132,10 @@ export const profileService = {
         data: { confirmPassword }
       });
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Delete account error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to delete account');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to delete account');
     }
   },
 
