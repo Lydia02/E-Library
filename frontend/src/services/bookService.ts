@@ -50,9 +50,10 @@ export const bookService = {
     try {
       const response = await apiClient.get('/books', { params });
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Get books error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to get books');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to get books');
     }
   },
 
@@ -63,9 +64,10 @@ export const bookService = {
     try {
       const response = await apiClient.get(`/books/${id}`);
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Get book error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to get book');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to get book');
     }
   },
 
@@ -76,9 +78,10 @@ export const bookService = {
     try {
       const response = await apiClient.post('/books', bookData);
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Create book error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to create book');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to create book');
     }
   },
 
@@ -89,9 +92,10 @@ export const bookService = {
     try {
       const response = await apiClient.put(`/books/${id}`, bookData);
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Update book error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to update book');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to update book');
     }
   },
 
@@ -102,9 +106,10 @@ export const bookService = {
     try {
       const response = await apiClient.delete(`/books/${id}`);
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Delete book error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to delete book');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to delete book');
     }
   },
 
@@ -119,9 +124,10 @@ export const bookService = {
     try {
       const response = await apiClient.get('/books/my-books', { params });
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Get my books error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to get user books');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to get user books');
     }
   }
 };

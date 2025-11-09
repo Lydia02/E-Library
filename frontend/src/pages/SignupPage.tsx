@@ -74,7 +74,7 @@ const SignupPage: React.FC = () => {
     try {
       await signup(formData.name, formData.email, formData.password);
       navigate('/books');
-    } catch (error) {
+    } catch {
       setErrors({ general: 'Signup failed. Please try again.' });
     } finally {
       setLoading(false);

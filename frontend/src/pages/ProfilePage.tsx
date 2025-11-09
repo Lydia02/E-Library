@@ -21,7 +21,7 @@ const ProfilePage: React.FC = () => {
       return;
     }
     fetchUserData();
-  }, [isAuthenticated, navigate, user]); // Added user dependency to re-fetch when user updates
+  }, [isAuthenticated, navigate, user]);
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -81,7 +81,7 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleProfileUpdate = async (formData: any) => {
+  const handleProfileUpdate = async (formData: Partial<User>) => {
     try {
       // Use AuthContext's updateProfile method which properly updates user state
       await updateProfile(formData);
@@ -560,7 +560,7 @@ const ProfileStatsTab: React.FC<{ userStats: UserStats | null }> = ({ userStats 
 // Edit Profile Modal Component
 const EditProfileModal: React.FC<{
   user: User;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: Partial<User>) => Promise<void>;
   onClose: () => void;
 }> = ({ user, onSave, onClose }) => {
   const [formData, setFormData] = useState({
@@ -602,8 +602,9 @@ const EditProfileModal: React.FC<{
       // Call onSave which handles the profile update through AuthContext
       await onSave(formData);
       onClose();
-    } catch (error: any) {
-      setError(error.message || 'Failed to update profile. Please try again.');
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      setError(err.message || 'Failed to update profile. Please try again.');
     } finally {
       setSaving(false);
     }

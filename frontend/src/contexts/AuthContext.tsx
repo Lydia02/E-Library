@@ -7,6 +7,7 @@ import { API_ENDPOINTS } from '../config/api';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -123,7 +124,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Update local user state - merge the updated profile data with existing user
       if (user && updatedProfile) {
         // Extract only user-related fields from the response (exclude stats if present)
-        const { stats, ...userFields } = updatedProfile as any;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { stats: _stats, ...userFields } = updatedProfile as unknown as { stats?: unknown; [key: string]: unknown };
         const updatedUser = { ...user, ...userFields };
         console.log('AuthContext: Setting updated user:', updatedUser);
         setUser(updatedUser);
