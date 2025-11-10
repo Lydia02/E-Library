@@ -90,27 +90,28 @@ npm run dev
 ```
 
 ### Running with Docker
-## Prerequisite
-Install Docker: https://docs.docker.com/get-docker/
+*Prerequisite:*
+- Docker and Docker Compose installed ([Get Docker](https://docs.docker.com/get-docker/))
+- Create .env file in backend/ directory with Firebase credentials
 
-1. Build and start all services
-```sh
+*Quick Start:*
+```bash
+# Build and start all services
 docker-compose up --build
-```
 
-2. View contsiner logs
-```sh
+# Run in detached mode (background)
+docker-compose up -d
+
+# View logs
 docker-compose logs -f
-```
 
-3. To stop the application:
-```sh
+# Stop services
 docker-compose down
 ```
-4. Rebuild after making code changes
-```sh
-docker-compose up --build -d
-```
+
+*Access the application:*
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
 
 ### Usage
 
@@ -175,11 +176,17 @@ E-Library/
 │   │   ├── utils
 │   │   │   ├── pagination.js
 │   │   │   ├── response.js
-│   │   │   └── validation.js
+|   |   |   ├── validation.js
+│   │   │   └── validation.test.js
+|   |   |   
 │   │   ├── index.js
 │   │   └── server.js
-│   ├── .env.example
+│   ├── .dockerignore
+|   ├── .env.example
 │   ├── .gitignore
+|   ├── Dockerfile
+|   ├── jest.config.js
+|   ├── package-lock.json
 │   ├── package.json
 │   └── README.md 
 │
@@ -250,15 +257,19 @@ E-Library/
 │   │   └── main.tsx
 │   │
 │   ├── .gitignore
+|   ├── .dockerignore
+|   ├── Dockerfile
 │   ├── eslint.config.js
 │   ├── index.html
+|   ├── nginx.conf
 │   ├── MIGRATION_COMPLETE.md
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── tsconfig.app.json
 │   ├── tsconfig.json
 │   ├── tsconfig.node.json
-│   ├── vite.config.ts
+|   ├── vite.config.ts
+│   ├── vitest.config.ts
 │   │
 │   ├── BRANCH_01_README.md
 │   ├── BRANCH_02_README.md
@@ -279,7 +290,8 @@ E-Library/
 ├── .gitignore
 ├── LICENSE
 ├── MIGRATION_PLAN.md
-└── README.md
+├── README.md
+└── docker-compose.yml
 ```
 
 ## Links
