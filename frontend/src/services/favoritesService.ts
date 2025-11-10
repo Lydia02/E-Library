@@ -22,7 +22,7 @@ api.interceptors.request.use(
         try {
           const user = JSON.parse(userStr);
           token = user.token;
-        } catch (e) {
+        } catch {
           console.warn('Failed to parse user from localStorage');
         }
       }
@@ -50,9 +50,10 @@ class FavoritesService {
   static async addToFavorites(bookId: string): Promise<void> {
     try {
       await api.post(`/favorites/${bookId}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding to favorites:', error);
-      throw new Error(error.response?.data?.message || 'Failed to add to favorites');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to add to favorites');
     }
   }
 
@@ -60,9 +61,10 @@ class FavoritesService {
   static async removeFromFavorites(bookId: string): Promise<void> {
     try {
       await api.delete(`/favorites/${bookId}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error removing from favorites:', error);
-      throw new Error(error.response?.data?.message || 'Failed to remove from favorites');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to remove from favorites');
     }
   }
 
@@ -71,9 +73,10 @@ class FavoritesService {
     try {
       const response = await api.get('/favorites');
       return response.data.data?.favorites || response.data.favorites || [];
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching favorites:', error);
-      throw new Error(error.response?.data?.message || 'Failed to fetch favorites');
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Failed to fetch favorites');
     }
   }
 
@@ -82,7 +85,7 @@ class FavoritesService {
     try {
       const response = await api.get(`/favorites/check/${bookId}`);
       return response.data.data?.isFavorite || false;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error checking favorite status:', error);
       return false;
     }

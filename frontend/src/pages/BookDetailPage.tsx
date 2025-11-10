@@ -19,6 +19,7 @@ const BookDetailPage: React.FC = () => {
     fetchBook();
     checkFavoriteStatus();
     checkUserRating();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const checkUserRating = () => {
@@ -269,7 +270,7 @@ const BookDetailPage: React.FC = () => {
               </div>
               <div className="col-md-6 mb-3">
                 <h6 className="text-muted mb-2">Pages</h6>
-                <p className="mb-0">{book.pages || (book as any).pageCount} pages</p>
+                <p className="mb-0">{book.pages || (book as Book).pageCount} pages</p>
               </div>
               <div className="col-md-6 mb-3">
                 <h6 className="text-muted mb-2">Publication Date</h6>

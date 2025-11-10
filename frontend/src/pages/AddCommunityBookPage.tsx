@@ -177,9 +177,10 @@ const AddCommunityBookPage: React.FC = () => {
         navigate('/books');
       }, 2000);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding community book:', error);
-      setErrors({ submit: error.message || 'Failed to add book. Please try again.' });
+      const err = error as { message?: string };
+      setErrors({ submit: err.message || 'Failed to add book. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }

@@ -65,7 +65,7 @@ const LoginPage: React.FC = () => {
       } else {
         navigate('/books');
       }
-    } catch (error) {
+    } catch {
       setErrors({ general: 'Invalid email or password' });
     } finally {
       setLoading(false);

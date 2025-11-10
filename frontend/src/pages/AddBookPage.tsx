@@ -480,7 +480,7 @@ const AddBookPage: React.FC = () => {
                       <button
                         key={status.value}
                         type="button"
-                        onClick={() => handleInputChange({ target: { name: 'status', value: status.value } } as any)}
+                        onClick={() => handleInputChange({ target: { name: 'status', value: status.value } } as React.ChangeEvent<HTMLSelectElement>)}
                         style={{
                           background: formData.status === status.value ? status.color : 'var(--bg-secondary)',
                           color: formData.status === status.value ? 'white' : 'var(--text-primary)',
