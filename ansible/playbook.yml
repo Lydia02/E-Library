@@ -1,0 +1,114 @@
+---
+- name: Configure E-Library Infrastructure
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required system packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - python3-pip
+          - git
+          - software-properties-common
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Install Docker Compose standalone
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Verify Docker installation
+      command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Display Docker version
+      debug:
+        msg: "Docker installed: {{ docker_version.stdout }}"
+
+    - name: Verify Docker Compose installation
+      command: docker-compose --version
+      register: docker_compose_version
+      changed_when: false
+
+    - name: Display Docker Compose version
+      debug:
+        msg: "Docker Compose installed: {{ docker_compose_version.stdout }}"
+
+- name: Configure App Server
+  hosts: app_servers
+  become: yes
+  tasks:
+    - name: Create application directory
+      file:
+        path: /opt/e-library
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Create environment file template
+      copy:
+        dest: /opt/e-library/.env.example
+        content: |
+          # Database Configuration
+          DB_HOST=elibrary-postgresql.postgres.database.azure.com
+          DB_PORT=5432
+          DB_NAME=elibrarydb
+          DB_USER=dbadmin
+          DB_PASSWORD=change-me
+          
+          # Application Configuration
+          FRONTEND_PORT=3000
+          BACKEND_PORT=5000
+          
+          # Azure Container Registry
+          ACR_LOGIN_SERVER=elibraryacr2dgk5j.azurecr.io
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
