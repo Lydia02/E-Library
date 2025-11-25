@@ -1,0 +1,82 @@
+---
+- name: Deploy E-Library to Production
+  hosts: app_servers
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Login to Azure Container Registry
+      command: >
+        docker login {{ lookup('env', 'ACR_LOGIN_SERVER') }}
+        -u {{ lookup('env', 'AZURE_CLIENT_ID') }}
+        -p {{ lookup('env', 'AZURE_CLIENT_SECRET') }}
+      no_log: true
+
+    - name: Create application directory
+      file:
+        path: /opt/e-library
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Copy docker-compose file
+      copy:
+        src: ../docker-compose.yml
+        dest: /opt/e-library/docker-compose.yml
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+
+    - name: Create environment file
+      copy:
+        dest: /opt/e-library/.env
+        content: |
+          ACR_LOGIN_SERVER={{ lookup('env', 'ACR_LOGIN_SERVER') }}
+          IMAGE_TAG={{ lookup('env', 'IMAGE_TAG') }}
+          DB_HOST={{ lookup('env', 'DB_HOST') }}
+          DB_PORT={{ lookup('env', 'DB_PORT') }}
+          DB_NAME={{ lookup('env', 'DB_NAME') }}
+          DB_USER={{ lookup('env', 'DB_USER') }}
+          DB_PASSWORD={{ lookup('env', 'DB_PASSWORD') }}
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+      no_log: true
+
+    - name: Pull latest images
+      command: docker-compose pull
+      args:
+        chdir: /opt/e-library
+      environment:
+        ACR_LOGIN_SERVER: "{{ lookup('env', 'ACR_LOGIN_SERVER') }}"
+        IMAGE_TAG: "{{ lookup('env', 'IMAGE_TAG') }}"
+
+    - name: Start services
+      command: docker-compose up -d
+      args:
+        chdir: /opt/e-library
+      environment:
+        ACR_LOGIN_SERVER: "{{ lookup('env', 'ACR_LOGIN_SERVER') }}"
+        IMAGE_TAG: "{{ lookup('env', 'IMAGE_TAG') }}"
+        DB_HOST: "{{ lookup('env', 'DB_HOST') }}"
+        DB_PORT: "{{ lookup('env', 'DB_PORT') }}"
+        DB_NAME: "{{ lookup('env', 'DB_NAME') }}"
+        DB_USER: "{{ lookup('env', 'DB_USER') }}"
+        DB_PASSWORD: "{{ lookup('env', 'DB_PASSWORD') }}"
+
+    - name: Wait for services to be healthy
+      wait_for:
+        port: "{{ item }}"
+        delay: 10
+        timeout: 120
+      loop:
+        - 3000
+        - 5000
+
+    - name: Display deployment info
+      debug:
+        msg:
+          - "Deployment completed successfully!"
+          - "Frontend: http://74.249.251.94:3000"
+          - "Backend: http://74.249.251.94:5000"
