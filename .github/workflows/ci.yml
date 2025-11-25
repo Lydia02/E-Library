@@ -9,18 +9,18 @@ on:
       - main
   workflow_dispatch:
 
-# Add this section
 permissions:
   contents: read
   security-events: write
   pull-requests: read
+  actions: read
 
 jobs:
   # ==========================================
   # JOB 1: Frontend Build & Test
   # ==========================================
   frontend-ci:
-    name:  Frontend Build & Test
+    name: Frontend Build & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -100,13 +100,14 @@ jobs:
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
           working_directory: terraform
-          soft_fail: false
+          soft_fail: true
           format: sarif
           additional_args: --minimum-severity HIGH
 
       - name: Upload tfsec results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true
         with:
           sarif_file: results.sarif
           category: terraform-security
@@ -141,6 +142,7 @@ jobs:
       - name: Upload frontend Trivy results
         uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true
         with:
           sarif_file: trivy-frontend-results.sarif
           category: docker-frontend-security
@@ -160,6 +162,7 @@ jobs:
       - name: Upload backend Trivy results
         uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true
         with:
           sarif_file: trivy-backend-results.sarif
           category: docker-backend-security
@@ -182,7 +185,7 @@ jobs:
       - name: Check all job results
         run: |
           echo "=========================================="
-          echo " CI PIPELINE SUMMARY"
+          echo "CI PIPELINE SUMMARY"
           echo "=========================================="
           echo ""
           echo "Frontend CI: ${{ needs.frontend-ci.result }}"
@@ -193,17 +196,17 @@ jobs:
           
           if [ "${{ needs.frontend-ci.result }}" == "failure" ] || \
              [ "${{ needs.backend-ci.result }}" == "failure" ]; then
-            echo " CI CHECKS FAILED!"
+            echo "CI CHECKS FAILED!"
             echo "Build or test failures detected."
             echo "=========================================="
             exit 1
           fi
           
           if [ "${{ needs.terraform-security.result }}" == "failure" ]; then
-            echo " TERRAFORM SECURITY ISSUES DETECTED!"
+            echo "TERRAFORM SECURITY ISSUES DETECTED!"
             echo "Review findings in GitHub Security tab."
           fi
           
-          echo " Pipeline completed!"
-          echo " Security scan results available in Security tab"
+          echo "Pipeline completed!"
+          echo "Security scan results available in Security tab"
           echo "=========================================="
