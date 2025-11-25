@@ -1,0 +1,9 @@
+---
+# Non-sensitive configuration - Safe to commit
+db_host: "{{ lookup('env', 'DB_HOST') | default('elibrary-postgresql.postgres.database.azure.com') }}"
+db_port: "{{ lookup('env', 'DB_PORT') | default('5432') }}"
+db_name: "{{ lookup('env', 'DB_NAME') | default('elibrarydb') }}"
+db_user: "{{ lookup('env', 'DB_USER') | default('dbadmin') }}"
+acr_login_server: "{{ lookup('env', 'ACR_LOGIN_SERVER') | default('elibraryacr2dgk5j.azurecr.io') }}"
+frontend_port: 3000
+backend_port: 5000

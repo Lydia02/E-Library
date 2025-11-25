@@ -32,3 +32,20 @@ logs/
 # Build
 dist/
 build/
+# Environment files
+.env
+*.env
+!.env.example
+backend/.env
+frontend/.env
+
+# Secrets
+*.pem
+*.key
+serviceAccountKey.json
+firebase-adminsdk-*.json
+
+# Terraform
+*.tfvars
+*.tfstate
+*.tfstate.*
