@@ -6,7 +6,7 @@ const API_URLS = {
   development: 'http://localhost:5000'
 };
 
-export const API_BASE_URL = isProduction ? API_URLS.production : API_URLS.development;
+export const API_BASE_URL = API_URLS.production;
 
 // API Endpoints
 export const API_ENDPOINTS = {
