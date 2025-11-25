@@ -1,0 +1,150 @@
+name: CD Pipeline - Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  ACR_NAME: elibraryacr2dgk5j
+  ACR_LOGIN_SERVER: elibraryacr2dgk5j.azurecr.io
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  # ==========================================
+  # JOB 1: Build and Push Docker Images
+  # ==========================================
+  build-and-push:
+    name: 🐳 Build & Push to ACR
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_CLIENT_SECRET }}
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.ACR_LOGIN_SERVER }}/elibrary-backend:${{ env.IMAGE_TAG }}
+            ${{ env.ACR_LOGIN_SERVER }}/elibrary-backend:latest
+          cache-from: type=registry,ref=${{ env.ACR_LOGIN_SERVER }}/elibrary-backend:latest
+          cache-to: type=inline
+      
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.ACR_LOGIN_SERVER }}/elibrary-frontend:${{ env.IMAGE_TAG }}
+            ${{ env.ACR_LOGIN_SERVER }}/elibrary-frontend:latest
+          cache-from: type=registry,ref=${{ env.ACR_LOGIN_SERVER }}/elibrary-frontend:latest
+          cache-to: type=inline
+
+  # ==========================================
+  # JOB 2: Deploy to VMs with Ansible
+  # ==========================================
+  deploy:
+    name: Deploy to Production VMs
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Ansible
+        run: pip install ansible
+      
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 52.176.217.99 >> ~/.ssh/known_hosts
+      
+      - name: Create deployment environment file
+        run: |
+          cat > ansible/deployment.env << EOF
+          ACR_LOGIN_SERVER=${{ env.ACR_LOGIN_SERVER }}
+          IMAGE_TAG=${{ env.IMAGE_TAG }}
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}
+          EOF
+      
+      - name: Deploy with Ansible
+        env:
+          ACR_LOGIN_SERVER: ${{ env.ACR_LOGIN_SERVER }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          cd ansible
+          ansible-playbook deploy.yml -i inventory.yml
+      
+      - name: Verify deployment
+        run: |
+          echo "Deployment completed!"
+          echo "Frontend: http://74.249.251.94:3000"
+          echo "Backend: http://74.249.251.94:5000"
+
+  # ==========================================
+  # JOB 3: Deployment Summary
+  # ==========================================
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [build-and-push, deploy]
+    if: always()
+    
+    steps:
+      - name: Deployment status
+        run: |
+          echo "=========================================="
+          echo "DEPLOYMENT SUMMARY"
+          echo "=========================================="
+          echo ""
+          echo "Build & Push: ${{ needs.build-and-push.result }}"
+          echo "Deploy: ${{ needs.deploy.result }}"
+          echo ""
+          if [ "${{ needs.build-and-push.result }}" == "success" ] && \
+             [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "Deployment successful!"
+            echo "Application URLs:"
+            echo " Frontend: http://74.249.251.94:3000"
+            echo " Backend: http://74.249.251.94:5000"
+          else
+            echo "Deployment failed!"
+            exit 1
+          fi
+          echo "=========================================="
