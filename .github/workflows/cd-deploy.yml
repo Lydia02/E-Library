@@ -63,7 +63,7 @@ jobs:
   # JOB 2: Deploy to VMs with Ansible
   # ==========================================
   deploy:
-    name: Deploy to Production VMs
+    name: 🚀 Deploy to Production VMs
     runs-on: ubuntu-latest
     needs: build-and-push
     
@@ -74,12 +74,39 @@ jobs:
       - name: Install Ansible
         run: pip install ansible
       
-      - name: Setup SSH key
+      - name: Setup SSH key and config
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          
+          # Add bastion to known_hosts
           ssh-keyscan -H 52.176.217.99 >> ~/.ssh/known_hosts
+          
+          # Create SSH config for ProxyJump
+          cat > ~/.ssh/config << 'EOF'
+          Host bastion
+            HostName 52.176.217.99
+            User azureuser
+            IdentityFile ~/.ssh/id_rsa
+            StrictHostKeyChecking no
+          
+          Host app-server
+            HostName 74.249.251.94
+            User azureuser
+            IdentityFile ~/.ssh/id_rsa
+            ProxyJump bastion
+            StrictHostKeyChecking no
+          EOF
+          
+          chmod 600 ~/.ssh/config
+          
+          # Test connections
+          echo "Testing bastion connection..."
+          ssh -o ConnectTimeout=10 bastion "echo 'Bastion OK'"
+          
+          echo "Testing app-server connection..."
+          ssh -o ConnectTimeout=10 app-server "echo 'App server OK'"
       
       - name: Create deployment environment file
         run: |
@@ -110,11 +137,11 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           cd ansible
-          ansible-playbook deploy.yml -i inventory.yml
+          ansible-playbook deploy.yml -i inventory.yml -vv
       
       - name: Verify deployment
         run: |
-          echo "Deployment completed!"
+          echo "✅ Deployment completed!"
           echo "Frontend: http://74.249.251.94:3000"
           echo "Backend: http://74.249.251.94:5000"
 
@@ -122,7 +149,7 @@ jobs:
   # JOB 3: Deployment Summary
   # ==========================================
   deployment-summary:
-    name: Deployment Summary
+    name: 📊 Deployment Summary
     runs-on: ubuntu-latest
     needs: [build-and-push, deploy]
     if: always()
@@ -131,7 +158,7 @@ jobs:
       - name: Deployment status
         run: |
           echo "=========================================="
-          echo "DEPLOYMENT SUMMARY"
+          echo "🚀 DEPLOYMENT SUMMARY"
           echo "=========================================="
           echo ""
           echo "Build & Push: ${{ needs.build-and-push.result }}"
@@ -139,12 +166,12 @@ jobs:
           echo ""
           if [ "${{ needs.build-and-push.result }}" == "success" ] && \
              [ "${{ needs.deploy.result }}" == "success" ]; then
-            echo "Deployment successful!"
-            echo "Application URLs:"
-            echo " Frontend: http://74.249.251.94:3000"
-            echo " Backend: http://74.249.251.94:5000"
+            echo "✅ Deployment successful!"
+            echo "🌐 Application URLs:"
+            echo "   Frontend: http://74.249.251.94:3000"
+            echo "   Backend: http://74.249.251.94:5000"
           else
-            echo "Deployment failed!"
+            echo "❌ Deployment failed!"
             exit 1
           fi
           echo "=========================================="
