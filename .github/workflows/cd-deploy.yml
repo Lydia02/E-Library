@@ -83,30 +83,20 @@ jobs:
           # Add bastion to known_hosts
           ssh-keyscan -H 52.176.217.99 >> ~/.ssh/known_hosts
           
-          # Create SSH config for ProxyJump
+          # Create SSH config
           cat > ~/.ssh/config << 'EOF'
           Host bastion
             HostName 52.176.217.99
             User azureuser
             IdentityFile ~/.ssh/id_rsa
             StrictHostKeyChecking no
-          
-          Host app-server
-            HostName 74.249.251.94
-            User azureuser
-            IdentityFile ~/.ssh/id_rsa
-            ProxyJump bastion
-            StrictHostKeyChecking no
           EOF
           
           chmod 600 ~/.ssh/config
           
-          # Test connections
+          # Test connection
           echo "Testing bastion connection..."
           ssh -o ConnectTimeout=10 bastion "echo 'Bastion OK'"
-          
-          echo "Testing app-server connection..."
-          ssh -o ConnectTimeout=10 app-server "echo 'App server OK'"
       
       - name: Create deployment environment file
         run: |
@@ -142,8 +132,8 @@ jobs:
       - name: Verify deployment
         run: |
           echo "✅ Deployment completed!"
-          echo "Frontend: http://74.249.251.94:3000"
-          echo "Backend: http://74.249.251.94:5000"
+          echo "Frontend: http://52.176.217.99:3000"
+          echo "Backend: http://52.176.217.99:5000"
 
   # ==========================================
   # JOB 3: Deployment Summary
@@ -168,8 +158,8 @@ jobs:
              [ "${{ needs.deploy.result }}" == "success" ]; then
             echo "✅ Deployment successful!"
             echo "🌐 Application URLs:"
-            echo "   Frontend: http://74.249.251.94:3000"
-            echo "   Backend: http://74.249.251.94:5000"
+            echo "   Frontend: http://52.176.217.99:3000"
+            echo "   Backend: http://52.176.217.99:5000"
           else
             echo "❌ Deployment failed!"
             exit 1
