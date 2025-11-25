@@ -1,108 +1,122 @@
-import { db } from '../config/firebase.js';
-
-const favoritesCollection = db.collection('favorites');
-const booksCollection = db.collection('books');
+import pool from '../config/database.js';
 
 const addFavorite = async (userId, bookId) => {
   try {
-    const bookDoc = await booksCollection.doc(bookId).get();
-    if (!bookDoc.exists) {
-      const error = new Error('Book not found');
-      error.statusCode = 404;
-      throw error;
+    const result = await pool.query(`
+      INSERT INTO favorites (user_id, book_id)
+      VALUES ($1, $2)
+      ON CONFLICT (user_id, book_id) DO NOTHING
+      RETURNING id, created_at
+    `, [userId, bookId]);
+
+    if (result.rows.length === 0) {
+      throw new Error('Favorite already exists');
     }
-
-    const favoriteRef = favoritesCollection.doc(`${userId}_${bookId}`);
-    const existingFavorite = await favoriteRef.get();
-
-    if (existingFavorite.exists) {
-      const error = new Error('Book already in favorites');
-      error.statusCode = 409;
-      throw error;
-    }
-
-    await favoriteRef.set({
-      userId,
-      bookId,
-      addedAt: new Date().toISOString(),
-    });
 
     return {
-      id: favoriteRef.id,
+      id: result.rows[0].id.toString(),
       userId,
       bookId,
-      addedAt: new Date().toISOString(),
+      createdAt: result.rows[0].created_at
     };
   } catch (error) {
+    console.error('Error adding favorite:', error);
     throw error;
   }
 };
 
 const removeFavorite = async (userId, bookId) => {
   try {
-    const favoriteRef = favoritesCollection.doc(`${userId}_${bookId}`);
-    const favorite = await favoriteRef.get();
+    const result = await pool.query(`
+      DELETE FROM favorites
+      WHERE user_id = $1 AND book_id = $2
+      RETURNING id
+    `, [userId, bookId]);
 
-    if (!favorite.exists) {
-      const error = new Error('Favorite not found');
-      error.statusCode = 404;
-      throw error;
+    if (result.rows.length === 0) {
+      return null;
     }
 
-    await favoriteRef.delete();
-    return { id: `${userId}_${bookId}`, deleted: true };
+    return { success: true };
   } catch (error) {
+    console.error('Error removing favorite:', error);
     throw error;
   }
 };
 
-const getUserFavorites = async (userId) => {
+const getUserFavorites = async (userId, filters = {}) => {
   try {
-    const snapshot = await favoritesCollection
-      .where('userId', '==', userId)
-      .get();
+    const limit = parseInt(filters.limit) || 20;
+    const offset = parseInt(filters.offset) || 0;
 
-    if (snapshot.empty) {
-      return [];
-    }
+    const result = await pool.query(`
+      SELECT
+        f.id as favorite_id,
+        f.created_at as favorited_at,
+        b.*
+      FROM favorites f
+      INNER JOIN books b ON f.book_id = b.id
+      WHERE f.user_id = $1
+      ORDER BY f.created_at DESC
+      LIMIT $2 OFFSET $3
+    `, [userId, limit, offset]);
 
-    const favorites = [];
-    const bookPromises = [];
-
-    snapshot.forEach((doc) => {
-      const favoriteData = doc.data();
-      bookPromises.push(
-        booksCollection.doc(favoriteData.bookId).get().then((bookDoc) => {
-          if (bookDoc.exists) {
-            favorites.push({
-              favoriteId: doc.id,
-              addedAt: favoriteData.addedAt,
-              book: {
-                id: bookDoc.id,
-                ...bookDoc.data(),
-              },
-            });
-          }
-        })
-      );
-    });
-
-    await Promise.all(bookPromises);
-
-    return favorites;
+    return result.rows.map(row => ({
+      favoriteId: row.favorite_id.toString(),
+      favoritedAt: row.favorited_at,
+      book: {
+        id: row.id.toString(),
+        title: row.title,
+        author: row.author,
+        isbn: row.isbn,
+        description: row.description,
+        coverImage: row.cover_image,
+        publishedYear: row.published_year,
+        publisher: row.publisher,
+        pageCount: row.page_count,
+        language: row.language,
+        genres: row.genres,
+        rating: parseFloat(row.rating),
+        totalRatings: row.total_ratings
+      }
+    }));
   } catch (error) {
+    console.error('Error getting user favorites:', error);
+    throw error;
+  }
+};
+
+const getUserFavoritesCount = async (userId) => {
+  try {
+    const result = await pool.query(`
+      SELECT COUNT(*) FROM favorites WHERE user_id = $1
+    `, [userId]);
+
+    return parseInt(result.rows[0].count);
+  } catch (error) {
+    console.error('Error getting favorites count:', error);
     throw error;
   }
 };
 
 const isFavorite = async (userId, bookId) => {
   try {
-    const favoriteRef = favoritesCollection.doc(`${userId}_${bookId}`);
-    const favorite = await favoriteRef.get();
-    return favorite.exists;
+    const result = await pool.query(`
+      SELECT id FROM favorites
+      WHERE user_id = $1 AND book_id = $2
+    `, [userId, bookId]);
+
+    return result.rows.length > 0;
   } catch (error) {
+    console.error('Error checking favorite status:', error);
     throw error;
   }
 };
 
-export { addFavorite, removeFavorite, getUserFavorites, isFavorite };
+export {
+  addFavorite,
+  removeFavorite,
+  getUserFavorites,
+  getUserFavoritesCount,
+  isFavorite
+};

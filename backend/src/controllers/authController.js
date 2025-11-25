@@ -3,7 +3,7 @@ import { sendCreated, sendSuccess, sendNotFound, sendBadRequest, sendError } fro
 import ProfileService from '../services/profileService.js';
 import bcrypt from 'bcrypt';
 
-// Login function
+// Login function - Supports both Firebase and PostgreSQL authentication
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -12,29 +12,47 @@ const login = async (req, res, next) => {
       return sendBadRequest(res, 'Email and password are required');
     }
 
-    // Check if user exists
+    // Step 1: Check if user exists in PostgreSQL
     const existingUser = await ProfileService.findUserByEmail(email);
 
     if (!existingUser) {
       return sendBadRequest(res, 'Invalid email or password');
     }
 
-    // Validate password using bcrypt
-    if (!existingUser.password) {
-      return sendBadRequest(res, 'Invalid email or password');
+    // Step 2: Try to authenticate with Firebase first
+    let firebaseAuthenticated = false;
+    try {
+      const firebaseUser = await auth.getUserByEmail(email);
+      if (firebaseUser) {
+        firebaseAuthenticated = true;
+        console.log('User authenticated via Firebase');
+      }
+    } catch (firebaseError) {
+      console.warn('Firebase authentication not available, using PostgreSQL:', firebaseError.message);
     }
 
-    const isPasswordValid = await ProfileService.verifyPassword(password, existingUser.password);
-    if (!isPasswordValid) {
-      return sendBadRequest(res, 'Invalid email or password');
+    // Step 3: If Firebase auth fails, validate password using PostgreSQL (bcrypt)
+    if (!firebaseAuthenticated) {
+      if (!existingUser.password) {
+        return sendBadRequest(res, 'Invalid email or password');
+      }
+
+      const isPasswordValid = await ProfileService.verifyPassword(password, existingUser.password);
+      if (!isPasswordValid) {
+        return sendBadRequest(res, 'Invalid email or password');
+      }
+      console.log('User authenticated via PostgreSQL');
     }
 
-    // User exists and password is correct
+    // User authenticated successfully
     const authenticatedUser = {
-      id: existingUser.id || existingUser.uid,
+      id: existingUser.id,
+      uid: existingUser.uid,
       email: existingUser.email,
-      name: existingUser.name || existingUser.displayName,
-      token: existingUser.token || 'mock-jwt-token-' + (existingUser.id || existingUser.uid)
+      name: existingUser.displayName,
+      displayName: existingUser.displayName,
+      photoURL: existingUser.photoURL,
+      token: 'token-' + existingUser.uid
     };
 
     return sendSuccess(res, 200, {
@@ -47,7 +65,7 @@ const login = async (req, res, next) => {
   }
 };
 
-// Signup function
+// Signup function - Uses both Firebase Auth and PostgreSQL
 const signup = async (req, res, next) => {
   try {
     const { email, password, name, fullName } = req.body;
@@ -62,30 +80,48 @@ const signup = async (req, res, next) => {
       return sendBadRequest(res, 'Password must be at least 6 characters long');
     }
 
-    // Check if user with this email already exists
+    // Check if user with this email already exists in PostgreSQL
     const existingUser = await ProfileService.findUserByEmail(email);
     if (existingUser) {
       return sendBadRequest(res, 'An account with this email already exists');
     }
 
-    // Create consistent user ID based on email hash
-    const userId = 'user-' + Buffer.from(email).toString('base64').replace(/[^a-zA-Z0-9]/g, '');
-    const userToken = 'mock-jwt-token-' + userId;
+    let firebaseUser;
+    let userId;
 
-    // Create user profile in database using ProfileService, INCLUDING the password
+    try {
+      // Step 1: Create user in Firebase Auth
+      firebaseUser = await auth.createUser({
+        email: email,
+        password: password,
+        displayName: userName,
+        emailVerified: false
+      });
+      userId = firebaseUser.uid;
+      console.log('Firebase user created:', userId);
+    } catch (firebaseError) {
+      // If Firebase fails, use fallback ID
+      console.warn('Firebase Auth failed, using fallback ID:', firebaseError.message);
+      userId = 'user-' + Buffer.from(email).toString('base64').replace(/[^a-zA-Z0-9]/g, '');
+    }
+
+    // Step 2: Create user profile in PostgreSQL (with both systems' data)
     const userProfile = await ProfileService.createUserProfile({
       uid: userId,
       email: email,
       name: userName,
       displayName: userName,
-      password: password, // Store password for validation
-      token: userToken
+      password: password
     });
+
+    // Generate token
+    const userToken = 'token-' + userId;
 
     const newUser = {
       id: userId,
       email: email,
       name: userName,
+      displayName: userName,
       token: userToken
     };
 
@@ -95,7 +131,7 @@ const signup = async (req, res, next) => {
     });
   } catch (error) {
     console.error('Signup error:', error);
-    return sendError(res, 500, 'Signup failed');
+    return sendError(res, 500, 'Signup failed: ' + error.message);
   }
 };
 

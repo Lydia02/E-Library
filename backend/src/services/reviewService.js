@@ -1,171 +1,125 @@
-import { db } from '../config/firebase.js';
+import pool from '../config/database.js';
 
-const reviewsCollection = db.collection('reviews');
-const booksCollection = db.collection('books');
-
-const createReview = async (bookId, userId, reviewData) => {
+const addReview = async (userId, bookId, rating, reviewText) => {
   try {
-    const bookDoc = await booksCollection.doc(bookId).get();
-    if (!bookDoc.exists) {
-      const error = new Error('Book not found');
-      error.statusCode = 404;
-      throw error;
-    }
+    const result = await pool.query(`
+      INSERT INTO reviews (user_id, book_id, rating, review_text)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (user_id, book_id) 
+      DO UPDATE SET rating = $3, review_text = $4, updated_at = NOW()
+      RETURNING id, rating, review_text, created_at, updated_at
+    `, [userId, bookId, rating, reviewText]);
 
-    const existingReview = await reviewsCollection
-      .where('bookId', '==', bookId)
-      .where('userId', '==', userId)
-      .limit(1)
-      .get();
-
-    if (!existingReview.empty) {
-      const error = new Error('You have already reviewed this book');
-      error.statusCode = 409;
-      throw error;
-    }
-
-    const newReview = {
-      bookId,
+    return {
+      id: result.rows[0].id.toString(),
       userId,
-      rating: reviewData.rating,
-      comment: reviewData.comment || '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    const docRef = await reviewsCollection.add(newReview);
-
-    await updateBookRating(bookId);
-
-    return {
-      id: docRef.id,
-      ...newReview,
+      bookId,
+      rating: result.rows[0].rating,
+      reviewText: result.rows[0].review_text,
+      createdAt: result.rows[0].created_at,
+      updatedAt: result.rows[0].updated_at
     };
   } catch (error) {
+    console.error('Error adding review:', error);
     throw error;
   }
 };
 
-const getBookReviews = async (bookId) => {
+const getBookReviews = async (bookId, filters = {}) => {
   try {
-    const snapshot = await reviewsCollection
-      .where('bookId', '==', bookId)
-      .orderBy('createdAt', 'desc')
-      .get();
+    const limit = parseInt(filters.limit) || 20;
+    const offset = parseInt(filters.offset) || 0;
 
-    if (snapshot.empty) {
-      return [];
-    }
+    const result = await pool.query(`
+      SELECT
+        r.*,
+        u.display_name,
+        u.photo_url
+      FROM reviews r
+      INNER JOIN users u ON r.user_id = u.id
+      WHERE r.book_id = $1
+      ORDER BY r.created_at DESC
+      LIMIT $2 OFFSET $3
+    `, [bookId, limit, offset]);
 
-    const reviews = [];
-    snapshot.forEach((doc) => {
-      reviews.push({
-        id: doc.id,
-        ...doc.data(),
-      });
-    });
-
-    return reviews;
+    return result.rows.map(row => ({
+      id: row.id.toString(),
+      userId: row.user_id,
+      bookId: row.book_id,
+      rating: row.rating,
+      reviewText: row.review_text,
+      user: {
+        displayName: row.display_name,
+        photoURL: row.photo_url
+      },
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
   } catch (error) {
+    console.error('Error getting book reviews:', error);
     throw error;
   }
 };
 
-const updateReview = async (reviewId, userId, updateData) => {
+const getUserReviews = async (userId, filters = {}) => {
   try {
-    const reviewRef = reviewsCollection.doc(reviewId);
-    const review = await reviewRef.get();
+    const limit = parseInt(filters.limit) || 20;
+    const offset = parseInt(filters.offset) || 0;
 
-    if (!review.exists) {
-      const error = new Error('Review not found');
-      error.statusCode = 404;
-      throw error;
-    }
+    const result = await pool.query(`
+      SELECT
+        r.*,
+        b.title,
+        b.author,
+        b.cover_image
+      FROM reviews r
+      INNER JOIN books b ON r.book_id = b.id
+      WHERE r.user_id = $1
+      ORDER BY r.created_at DESC
+      LIMIT $2 OFFSET $3
+    `, [userId, limit, offset]);
 
-    if (review.data().userId !== userId) {
-      const error = new Error('You can only update your own reviews');
-      error.statusCode = 403;
-      throw error;
-    }
-
-    const updates = {
-      ...updateData,
-      updatedAt: new Date().toISOString(),
-    };
-
-    await reviewRef.update(updates);
-
-    if (updateData.rating) {
-      await updateBookRating(review.data().bookId);
-    }
-
-    const updatedDoc = await reviewRef.get();
-    return {
-      id: updatedDoc.id,
-      ...updatedDoc.data(),
-    };
+    return result.rows.map(row => ({
+      id: row.id.toString(),
+      bookId: row.book_id,
+      rating: row.rating,
+      reviewText: row.review_text,
+      book: {
+        title: row.title,
+        author: row.author,
+        coverImage: row.cover_image
+      },
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
   } catch (error) {
+    console.error('Error getting user reviews:', error);
     throw error;
   }
 };
 
-const deleteReview = async (reviewId, userId) => {
+const deleteReview = async (userId, bookId) => {
   try {
-    const reviewRef = reviewsCollection.doc(reviewId);
-    const review = await reviewRef.get();
+    const result = await pool.query(`
+      DELETE FROM reviews
+      WHERE user_id = $1 AND book_id = $2
+      RETURNING id
+    `, [userId, bookId]);
 
-    if (!review.exists) {
-      const error = new Error('Review not found');
-      error.statusCode = 404;
-      throw error;
+    if (result.rows.length === 0) {
+      return null;
     }
 
-    if (review.data().userId !== userId) {
-      const error = new Error('You can only delete your own reviews');
-      error.statusCode = 403;
-      throw error;
-    }
-
-    const bookId = review.data().bookId;
-    await reviewRef.delete();
-
-    await updateBookRating(bookId);
-
-    return { id: reviewId, deleted: true };
+    return { success: true };
   } catch (error) {
+    console.error('Error deleting review:', error);
     throw error;
   }
 };
 
-const updateBookRating = async (bookId) => {
-  try {
-    const snapshot = await reviewsCollection.where('bookId', '==', bookId).get();
-
-    if (snapshot.empty) {
-      await booksCollection.doc(bookId).update({
-        rating: 0,
-        ratingCount: 0,
-      });
-      return;
-    }
-
-    let totalRating = 0;
-    let count = 0;
-
-    snapshot.forEach((doc) => {
-      totalRating += doc.data().rating;
-      count++;
-    });
-
-    const averageRating = totalRating / count;
-
-    await booksCollection.doc(bookId).update({
-      rating: Math.round(averageRating * 10) / 10,
-      ratingCount: count,
-    });
-  } catch (error) {
-    throw error;
-  }
+export {
+  addReview,
+  getBookReviews,
+  getUserReviews,
+  deleteReview
 };
-
-export { createReview, getBookReviews, updateReview, deleteReview };
