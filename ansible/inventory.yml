@@ -8,8 +8,8 @@ all:
     
     app_servers:
       hosts:
-        app-server:
-          ansible_host: 74.249.251.94
+        bastion:
+          ansible_host: 52.176.217.99
           ansible_user: azureuser
 
   vars:
