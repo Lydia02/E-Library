@@ -6,6 +6,8 @@ services:
     container_name: elibrary-backend
     ports:
       - "5000:5000"
+    volumes:
+      - ./serviceAccountKey.json:/app/serviceAccountKey.json:ro
     environment:
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
