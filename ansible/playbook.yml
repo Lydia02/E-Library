@@ -96,19 +96,36 @@
       copy:
         dest: /opt/e-library/.env.example
         content: |
-          # Database Configuration
-          DB_HOST=elibrary-postgresql.postgres.database.azure.com
-          DB_PORT=5432
-          DB_NAME=elibrarydb
-          DB_USER=dbadmin
-          DB_PASSWORD=change-me
+          # E-Library Environment Configuration Template
+          # Values are injected from CI/CD pipeline via GitHub Secrets
+          
+          # Azure PostgreSQL Database
+          DB_HOST={{ db_host }}
+          DB_PORT={{ db_port }}
+          DB_NAME={{ db_name }}
+          DB_USER={{ db_user }}
+          DB_PASSWORD=USE_GITHUB_SECRETS
           
           # Application Configuration
-          FRONTEND_PORT=3000
-          BACKEND_PORT=5000
+          FRONTEND_PORT={{ frontend_port }}
+          BACKEND_PORT={{ backend_port }}
+          NODE_ENV=production
           
           # Azure Container Registry
-          ACR_LOGIN_SERVER=elibraryacr2dgk5j.azurecr.io
+          ACR_LOGIN_SERVER={{ acr_login_server }}
+          
+          # SECURITY: Never commit real passwords to Git
+          # Use GitHub Secrets for CI/CD automation
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: '0644'
+
+    - name: Display deployment configuration
+      debug:
+        msg:
+          - "Application directory: /opt/e-library"
+          - "Database Host: {{ db_host }}"
+          - "Database Port: {{ db_port }}"
+          - "Frontend Port: {{ frontend_port }}"
+          - "Backend Port: {{ backend_port }}"
+          - "ACR Server: {{ acr_login_server }}"
