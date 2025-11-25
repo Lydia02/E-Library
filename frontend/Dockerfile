@@ -1,5 +1,5 @@
-# Build stage
-FROM node:20-alpine AS builder
+# Build stage - Use latest Node Alpine
+FROM node:20-alpine3.21 AS builder
 
 WORKDIR /app
 
@@ -9,8 +9,8 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# Production stage
-FROM nginx:1.25-alpine
+# Production stage - Use latest Nginx Alpine
+FROM nginx:1.27-alpine3.21
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
