@@ -28,6 +28,14 @@
         group: "{{ ansible_user }}"
         mode: '0644'
 
+    - name: Copy Firebase service account key
+      copy:
+        src: files/serviceAccountKey.json
+        dest: /opt/e-library/serviceAccountKey.json
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+
     - name: Create environment file
       copy:
         dest: /opt/e-library/.env
@@ -78,5 +86,5 @@
       debug:
         msg:
           - "Deployment completed successfully!"
-          - "Frontend: http://74.249.251.94:3000"
-          - "Backend: http://74.249.251.94:5000"
+          - "Frontend: http://52.176.217.99:3000"
+          - "Backend: http://52.176.217.99:5000"
