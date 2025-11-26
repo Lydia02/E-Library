@@ -50,7 +50,7 @@ const DashboardPage: React.FC = () => {
   const fetchRecommendations = async () => {
     try {
       // Fetch some books for recommendations
-      const response = await fetch('API_ENDPOINTS.BOOKS?limit=6');
+      const response = await fetch(`${API_ENDPOINTS.BOOKS}?limit=6`);
       if (response.ok) {
         const data = await response.json();
         // The API returns books in data.data.books structure
