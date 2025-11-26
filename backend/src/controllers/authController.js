@@ -53,7 +53,7 @@ const login = async (req, res, next) => {
       name: existingUser.displayName,
       displayName: existingUser.displayName,
       photoURL: existingUser.photoURL,
-      token: 'token-' + existingUser.uid
+      token: 'jwt-token-user-' + Buffer.from(existingUser.email).toString('base64')
     };
 
     return sendSuccess(res, 200, {
@@ -116,7 +116,7 @@ const signup = async (req, res, next) => {
     });
 
     // Generate token
-    const userToken = 'token-' + userId;
+    const userToken = 'jwt-token-user-' + Buffer.from(email).toString('base64');
 
     const newUser = {
       id: userId,
