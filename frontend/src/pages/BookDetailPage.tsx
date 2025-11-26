@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import type { Book } from '../types';
+import { API_ENDPOINTS } from '../config/api';
 
 const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
