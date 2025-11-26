@@ -34,4 +34,26 @@ const auth = admin.auth();
 logger.info('✅ Firebase Admin SDK initialized');
 logger.info('Project ID:', process.env.FIREBASE_PROJECT_ID || serviceAccount.project_id);
 
+export const syncToFirestore = async (collection, docId, data) => {
+  try {
+    await db.collection(collection).doc(docId).set(data, { merge: true });
+    logger.info(`✅ Synced to Firestore: ${collection}/${docId}`);
+    return true;
+  } catch (error) {
+    logger.error(`❌ Failed to sync to Firestore: ${collection}/${docId}`, error.message);
+    return false;
+  }
+};
+
+export const deleteFromFirestore = async (collection, docId) => {
+  try {
+    await db.collection(collection).doc(docId).delete();
+    logger.info(`✅ Deleted from Firestore: ${collection}/${docId}`);
+    return true;
+  } catch (error) {
+    logger.error(`❌ Failed to delete from Firestore: ${collection}/${docId}`, error.message);
+    return false;
+  }
+};
+
 export { admin, db, auth };

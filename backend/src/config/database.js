@@ -50,4 +50,40 @@ pool.on('error', (err) => {
   logger.error('Unexpected error on PostgreSQL client:', err.message);
 });
 
+export const syncToPostgres = async (table, data, idField = 'id') => {
+  const client = await pool.connect();
+  try {
+    const fields = Object.keys(data).filter(k => k !== idField);
+    const values = fields.map(f => data[f]);
+    const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ');
+
+    const query = `
+      INSERT INTO ${table} (${idField}, ${fields.join(', ')})
+      VALUES ($1, ${fields.map((_, i) => `$${i + 2}`).join(', ')})
+      ON CONFLICT (${idField})
+      DO UPDATE SET ${setClause}, updated_at = CURRENT_TIMESTAMP
+    `;
+
+    await client.query(query, [data[idField], ...values]);
+    logger.info(`✅ Synced to PostgreSQL: ${table}/${data[idField]}`);
+    client.release();
+    return true;
+  } catch (error) {
+    client.release();
+    logger.error(`❌ Failed to sync to PostgreSQL: ${table}/${data[idField]}`, error.message);
+    return false;
+  }
+};
+
+export const deleteFromPostgres = async (table, id, idField = 'id') => {
+  try {
+    await pool.query(`DELETE FROM ${table} WHERE ${idField} = $1`, [id]);
+    logger.info(`✅ Deleted from PostgreSQL: ${table}/${id}`);
+    return true;
+  } catch (error) {
+    logger.error(`❌ Failed to delete from PostgreSQL: ${table}/${id}`, error.message);
+    return false;
+  }
+};
+
 export default pool;
