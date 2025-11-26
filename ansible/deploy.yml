@@ -34,7 +34,7 @@
         dest: /opt/e-library/serviceAccountKey.json
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
-        mode: '0666'  # ← Changed to 0666 (world-readable)
+        mode: '0666'
 
     - name: Create environment file
       copy:
@@ -84,7 +84,7 @@
         seconds: 30
 
     - name: Check container status
-      command: docker ps --format "table {{.Names}}\t{{.Status}}"
+      command: docker ps
       args:
         chdir: /opt/e-library
       register: containers
@@ -93,7 +93,7 @@
       debug:
         msg: "{{ containers.stdout_lines }}"
 
-    - name: Check backend logs for errors
+    - name: Check backend logs
       command: docker logs elibrary-backend --tail 50
       args:
         chdir: /opt/e-library
@@ -105,10 +105,31 @@
         msg: "{{ backend_logs.stdout_lines }}"
       when: backend_logs.stdout_lines is defined
 
+    - name: Check frontend logs
+      command: docker logs elibrary-frontend --tail 20
+      args:
+        chdir: /opt/e-library
+      register: frontend_logs
+      ignore_errors: yes
+
+    - name: Display frontend logs
+      debug:
+        msg: "{{ frontend_logs.stdout_lines }}"
+      when: frontend_logs.stdout_lines is defined
+
     - name: Display deployment info
       debug:
         msg:
-          - "✅ Deployment completed!"
-          - "Frontend: http://52.176.217.99:3000"
-          - "Backend: http://52.176.217.99:5000"
-          - "Note: Backend may take 1-2 minutes to connect to Firebase and PostgreSQL"
+          - "=========================================="
+          - " DEPLOYMENT COMPLETED SUCCESSFULLY!"
+          - "=========================================="
+          - ""
+          - " Application URLs:"
+          - "   Frontend: http://52.176.217.99:3000"
+          - "   Backend:  http://52.176.217.99:5000"
+          - ""
+          - "Deployed Images:"
+          - "   Backend:  {{ lookup('env', 'ACR_LOGIN_SERVER') }}/elibrary-backend:{{ lookup('env', 'IMAGE_TAG') }}"
+          - "   Frontend: {{ lookup('env', 'ACR_LOGIN_SERVER') }}/elibrary-frontend:{{ lookup('env', 'IMAGE_TAG') }}"
+          - ""
+          - "=========================================="
