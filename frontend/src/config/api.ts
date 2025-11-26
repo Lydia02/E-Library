@@ -2,7 +2,7 @@ const isProduction = import.meta.env.PROD;
 
 // API Base URLs
 const API_URLS = {
-  production: 'https://summative-a-react-discovery-app-lydia02.onrender.com',
+  production: 'http://52.176.217.99:5000',
   development: 'http://localhost:5000'
 };
 
