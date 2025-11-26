@@ -40,7 +40,7 @@ const BooksPage: React.FC = () => {
     setLoading(true);
     try {
       // Fetch books from the real API
-      const response = await fetch('API_ENDPOINTS.BOOKS');
+      const response = await fetch(API_ENDPOINTS.BOOKS);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
