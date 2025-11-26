@@ -203,9 +203,8 @@ const BookCard: React.FC<BookCardProps> = ({ book, onToggleFavorite, isFavorite 
             <img
               src={book.coverUrl || book.coverImage || getGenericBookCover(book.title)}
               alt={book.title}
-              crossOrigin="anonymous"
               onError={(e) => {
-                // Swap to SVG fallback if remote image fails or is blocked by CORS
+                // Swap to SVG fallback if remote image fails
                 try {
                   (e.currentTarget as HTMLImageElement).src = getGenericBookCover(book.title);
                 } catch {

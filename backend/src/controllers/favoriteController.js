@@ -1,5 +1,5 @@
 import * as favoriteService from '../services/favoriteService.js';
-import { sendSuccess, sendCreated, sendNotFound } from '../utils/response.js';
+import { sendSuccess, sendCreated, sendNotFound, sendBadRequest } from '../utils/response.js';
 
 const addToFavorites = async (req, res, next) => {
   try {
@@ -10,12 +10,16 @@ const addToFavorites = async (req, res, next) => {
 
     return sendCreated(res, { favorite }, 'Book added to favorites');
   } catch (error) {
-    if (error.statusCode === 409) {
-      return res.status(409).json({
-        success: false,
-        error: { message: error.message },
-      });
+    // Friendly 409 for duplicate favorites
+    if (error && (error.statusCode === 409 || (error.message && error.message.toLowerCase().includes('favorite already')))) {
+      return res.status(409).json({ success: false, error: { message: error.message } });
     }
+
+    // If Firestore complains about missing composite index, return a helpful message
+    if (error && error.message && typeof error.message === 'string' && error.message.toLowerCase().includes('index')) {
+      return sendBadRequest(res, 'Favorites query requires a Firestore composite index. See backend/FIRESTORE_INDEXES_README.md and deploy the provided indexes.');
+    }
+
     next(error);
   }
 };
@@ -44,6 +48,10 @@ const getFavorites = async (req, res, next) => {
 
     return sendSuccess(res, 200, { favorites, count: favorites.length });
   } catch (error) {
+    // If Firestore requires an index, return a helpful message instead of generic 500
+    if (error && error.message && typeof error.message === 'string' && error.message.toLowerCase().includes('index')) {
+      return sendBadRequest(res, 'Favorites query requires a Firestore composite index. See backend/FIRESTORE_INDEXES_README.md and deploy the provided indexes.');
+    }
     next(error);
   }
 };

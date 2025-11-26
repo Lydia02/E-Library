@@ -30,6 +30,10 @@ api.interceptors.request.use(
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      // For local development provide a mock token so protected endpoints still work
+      console.warn('No token found - using mock token for development');
+      config.headers.Authorization = `Bearer mock-jwt-token-dev-user-123`;
     }
 
     return config;
