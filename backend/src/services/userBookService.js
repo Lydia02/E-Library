@@ -2,7 +2,7 @@ import pool from '../config/database.js';
 
 const addUserBook = async (userId, bookId, status = 'to-read', progress = 0) => {
   try {
-    // Check if user book already exists
+  
     const existingSnapshot = await db.collection('user_books')
       .where('userId', '==', userId)
       .where('bookId', '==', bookId)
