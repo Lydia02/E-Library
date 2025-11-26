@@ -1,4 +1,6 @@
 import { db } from '../config/firebase.js';
+import logger from '../utils/logger.js';
+import pool from '../config/database.js';
 
 const addFavorite = async (userId, bookId) => {
   try {
@@ -28,7 +30,7 @@ const addFavorite = async (userId, bookId) => {
       createdAt: favoriteData.createdAt
     };
   } catch (error) {
-    console.error('Error adding favorite:', error);
+    logger.error('Error adding favorite:', error);
     throw error;
   }
 };
@@ -53,7 +55,7 @@ const removeFavorite = async (userId, bookId) => {
 
     return { success: true };
   } catch (error) {
-    console.error('Error removing favorite:', error);
+    logger.error('Error removing favorite:', error);
     throw error;
   }
 };
@@ -74,43 +76,84 @@ const getUserFavorites = async (userId, filters = {}) => {
       return [];
     }
 
-    // Get book details for each favorite
+    // Get book details for each favorite. If the app stores books in Postgres
+    // (primary DB), attempt to fetch from Postgres as a fallback when Firestore
+    // book documents don't exist.
     const favorites = await Promise.all(
       favoritesSnapshot.docs.map(async (favoriteDoc) => {
-        const favoriteData = favoriteDoc.data();
-        const bookDoc = await db.collection('books').doc(favoriteData.bookId).get();
+        try {
+          const favoriteData = favoriteDoc.data();
 
-        if (!bookDoc.exists) {
+          // First try Firestore book doc
+          const bookDoc = await db.collection('books').doc(favoriteData.bookId).get().catch(() => null);
+
+          if (bookDoc && bookDoc.exists) {
+            const bookData = bookDoc.data();
+            return {
+              favoriteId: favoriteDoc.id,
+              favoritedAt: favoriteData.createdAt?.toDate ? favoriteData.createdAt.toDate() : favoriteData.createdAt,
+              book: {
+                id: bookDoc.id,
+                title: bookData.title || 'Untitled',
+                author: bookData.author || 'Unknown Author',
+                isbn: bookData.isbn || null,
+                description: bookData.description || null,
+                coverImage: bookData.coverImage || null,
+                publishedYear: bookData.publishedYear || null,
+                publisher: bookData.publisher || null,
+                pageCount: bookData.pageCount || null,
+                language: bookData.language || 'en',
+                genres: bookData.genres || [],
+                rating: parseFloat(bookData.rating) || 0,
+                totalRatings: bookData.totalRatings || 0
+              }
+            };
+          }
+
+          // Firestore book not found — fallback to Postgres directly
+          try {
+            const res = await pool.query('SELECT * FROM books WHERE id = $1', [favoriteData.bookId]);
+            if (!res || res.rows.length === 0) return null;
+            const book = res.rows[0];
+            return {
+              favoriteId: favoriteDoc.id,
+              favoritedAt: favoriteData.createdAt?.toDate ? favoriteData.createdAt.toDate() : favoriteData.createdAt,
+              book: {
+                id: book.id.toString(),
+                title: book.title,
+                author: book.author,
+                isbn: book.isbn,
+                description: book.description,
+                coverImage: book.cover_image,
+                publishedYear: book.published_year,
+                publisher: book.publisher,
+                pageCount: book.page_count,
+                language: book.language,
+                genres: book.genres,
+                rating: parseFloat(book.rating),
+                totalRatings: book.total_ratings,
+                createdBy: book.created_by,
+                isUserGenerated: book.is_user_generated,
+                createdAt: book.created_at,
+                updatedAt: book.updated_at
+              }
+            };
+          } catch (pgErr) {
+            // If Postgres lookup fails, log and skip this favorite
+            logger.warn('Failed to fetch book from Postgres for favorite', favoriteDoc.id, pgErr.message);
+            return null;
+          }
+        } catch (innerErr) {
+          logger.error('Error resolving favorite entry:', innerErr);
           return null;
         }
-
-        const bookData = bookDoc.data();
-        return {
-          favoriteId: favoriteDoc.id,
-          favoritedAt: favoriteData.createdAt?.toDate ? favoriteData.createdAt.toDate() : favoriteData.createdAt,
-          book: {
-            id: bookDoc.id,
-            title: bookData.title || 'Untitled',
-            author: bookData.author || 'Unknown Author',
-            isbn: bookData.isbn || null,
-            description: bookData.description || null,
-            coverImage: bookData.coverImage || null,
-            publishedYear: bookData.publishedYear || null,
-            publisher: bookData.publisher || null,
-            pageCount: bookData.pageCount || null,
-            language: bookData.language || 'en',
-            genres: bookData.genres || [],
-            rating: parseFloat(bookData.rating) || 0,
-            totalRatings: bookData.totalRatings || 0
-          }
-        };
       })
     );
 
     // Filter out null entries (books that don't exist)
     return favorites.filter(f => f !== null);
   } catch (error) {
-    console.error('Error getting user favorites:', error);
+    logger.error('Error getting user favorites:', error);
     throw error;
   }
 };
@@ -123,7 +166,7 @@ const getUserFavoritesCount = async (userId) => {
 
     return snapshot.size;
   } catch (error) {
-    console.error('Error getting favorites count:', error);
+    logger.error('Error getting favorites count:', error);
     throw error;
   }
 };
@@ -137,7 +180,7 @@ const isFavorite = async (userId, bookId) => {
 
     return !snapshot.empty;
   } catch (error) {
-    console.error('Error checking favorite status:', error);
+    logger.error('Error checking favorite status:', error);
     throw error;
   }
 };
