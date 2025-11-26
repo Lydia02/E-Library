@@ -65,12 +65,12 @@ export const syncToPostgres = async (table, data, idField = 'id') => {
     `;
 
     await client.query(query, [data[idField], ...values]);
-    logger.info(`✅ Synced to PostgreSQL: ${table}/${data[idField]}`);
+    logger.info(` Synced to PostgreSQL: ${table}/${data[idField]}`);
     client.release();
     return true;
   } catch (error) {
     client.release();
-    logger.error(`❌ Failed to sync to PostgreSQL: ${table}/${data[idField]}`, error.message);
+    logger.error(` Failed to sync to PostgreSQL: ${table}/${data[idField]}`, error.message);
     return false;
   }
 };
@@ -78,10 +78,10 @@ export const syncToPostgres = async (table, data, idField = 'id') => {
 export const deleteFromPostgres = async (table, id, idField = 'id') => {
   try {
     await pool.query(`DELETE FROM ${table} WHERE ${idField} = $1`, [id]);
-    logger.info(`✅ Deleted from PostgreSQL: ${table}/${id}`);
+    logger.info(` Deleted from PostgreSQL: ${table}/${id}`);
     return true;
   } catch (error) {
-    logger.error(`❌ Failed to delete from PostgreSQL: ${table}/${id}`, error.message);
+    logger.error(` Failed to delete from PostgreSQL: ${table}/${id}`, error.message);
     return false;
   }
 };

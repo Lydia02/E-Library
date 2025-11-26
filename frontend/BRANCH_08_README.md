@@ -80,7 +80,7 @@ interface BookCardProps {
 ```typescript
 const getGenericBookCover = (title: string) => {
   // 5 gradient variations
-  // Book emojis (📚📖📘📗📙)
+  // Book emojis (📘📗📙)
   // Encoded as base64 SVG
   // Deterministic selection based on title
 }
@@ -231,8 +231,8 @@ export const generateGenericBookCover = (title: string): string => {
 ```
 
 ### Cover Variations
-1. **Purple Gradient** - 📚 emoji
-2. **Pink Gradient** - 📖 emoji
+1. **Purple Gradient** -  emoji
+2. **Pink Gradient** -  emoji
 3. **Blue Gradient** - 📘 emoji
 4. **Green Gradient** - 📗 emoji
 5. **Orange Gradient** - 📙 emoji
@@ -254,7 +254,7 @@ ${title.length > 14 ? `<tspan x="100" dy="18">${title.substring(14, 28)}</tspan>
 <svg width="200" height="300">
   <linearGradient>...</linearGradient>
   <rect fill="url(#grad)"/>
-  <text>📚</text>
+  <text></text>
   <text>Title Line 1</text>
   <text>Title Line 2</text>
 </svg>
@@ -421,11 +421,11 @@ padding: clamp(0.7rem, 1.8vw, 0.9rem)
 
 ## Build Verification
 
-- ✅ TypeScript compilation successful
-- ✅ All components created
-- ✅ Services and utilities added
-- ✅ No build errors
-- ✅ Ready for page integration
+-  TypeScript compilation successful
+-  All components created
+-  Services and utilities added
+-  No build errors
+-  Ready for page integration
 
 ---
 

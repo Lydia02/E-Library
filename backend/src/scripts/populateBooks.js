@@ -10,7 +10,7 @@ export const getBooksCount = async () => {
     const snapshot = await booksCollection.get();
     return snapshot.size;
   } catch (error) {
-    console.error('❌ Error getting books count:', error);
+    console.error(' Error getting books count:', error);
     return 0;
   }
 };
@@ -31,10 +31,10 @@ export const clearAllBooks = async () => {
     });
 
   await batch.commit();
-  logger.info(`✅ Successfully deleted ${existingBooks.size} books from database`);
+  logger.info(` Successfully deleted ${existingBooks.size} books from database`);
     return { success: true, deletedCount: existingBooks.size };
   } catch (error) {
-    console.error('❌ Error clearing books:', error);
+    console.error(' Error clearing books:', error);
     throw error;
   }
 };
@@ -48,7 +48,7 @@ export const isDatabaseEmpty = async () => {
     const snapshot = await booksCollection.limit(1).get();
     return snapshot.empty;
   } catch (error) {
-    console.error('❌ Error checking database:', error);
+    console.error(' Error checking database:', error);
     return true;
   }
 };
@@ -63,12 +63,12 @@ export const initializeBooksIfEmpty = async () => {
     const count = await getBooksCount();
 
     if (isEmpty) {
-          logger.info('📚 Database is empty. Please add books through the admin interface or API.');
+          logger.info(' Database is empty. Please add books through the admin interface or API.');
     } else {
-          logger.info(`📚 Database contains ${count} books`);
+          logger.info(` Database contains ${count} books`);
     }
   } catch (error) {
-    console.error('❌ Error checking database:', error);
+    console.error(' Error checking database:', error);
   }
 };
 
@@ -76,11 +76,11 @@ export const initializeBooksIfEmpty = async () => {
  * Refresh books (placeholder for admin functionality)
  */
 export const refreshBooks = async () => {
-  logger.info('🔄 Refreshing books...');
+  logger.info(' Refreshing books...');
 
   try {
     const count = await getBooksCount();
-  logger.info(`✅ Database currently has ${count} books`);
+  logger.info(` Database currently has ${count} books`);
 
     return {
       success: true,
@@ -88,7 +88,7 @@ export const refreshBooks = async () => {
       booksCount: count
     };
   } catch (error) {
-    console.error('❌ Error refreshing books:', error);
+    console.error(' Error refreshing books:', error);
     throw error;
   }
 };
