@@ -44,8 +44,8 @@ const getAllBooks = async (filters = {}) => {
         totalRatings: data.totalRatings || 0,
         createdBy: data.createdBy || null,
         isUserGenerated: data.isUserGenerated || false,
-        createdAt: data.createdAt?.toDate() || new Date(),
-        updatedAt: data.updatedAt?.toDate() || new Date()
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt || new Date()),
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt || new Date())
       };
     });
 
@@ -96,8 +96,8 @@ const getBookById = async (bookId) => {
       totalRatings: data.totalRatings || 0,
       createdBy: data.createdBy || null,
       isUserGenerated: data.isUserGenerated || false,
-      createdAt: data.createdAt?.toDate() || new Date(),
-      updatedAt: data.updatedAt?.toDate() || new Date()
+      createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt || new Date()),
+      updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt || new Date())
     };
   } catch (error) {
     console.error('Error getting book from Firebase:', error);
