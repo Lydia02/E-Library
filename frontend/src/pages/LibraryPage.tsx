@@ -127,16 +127,11 @@ const LibraryPage: React.FC = () => {
   const fetchUserBooks = async () => {
     setLoading(true);
     try {
-      console.log('Fetching user books...');
       // Fetch user's own books using UserBooksService
       const userBooksData = await UserBooksService.getUserBooks();
-      console.log('Received user books data:', userBooksData);
       const booksArray = Array.isArray(userBooksData) ? userBooksData : [];
-      console.log('Processed books array:', booksArray);
-      console.log('Books count:', booksArray.length);
       setUserBooks(booksArray);
-    } catch (error) {
-      console.error('Error fetching user books:', error);
+    } catch {
       // Show empty state or error message
       setUserBooks([]);
     } finally {

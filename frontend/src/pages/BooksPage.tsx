@@ -38,25 +38,18 @@ const BooksPage: React.FC = () => {
   const fetchBooks = async () => {
     setLoading(true);
     try {
-      console.log('Fetching books from API...');
       // Fetch books from the real API
       const response = await fetch('https://summative-a-react-discovery-app-lydia02.onrender.com/api/books');
-      console.log('API Response status:', response.status);
-      console.log('API Response ok:', response.ok);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      console.log('API Response data:', data);
 
       // The API returns books in data.data.books structure
       const books = data.data?.books || data.books || [];
-      console.log('Processed books:', books);
-      console.log('Books count:', books.length);
       setBooks(books);
-    } catch (error) {
-      console.error('Error fetching books:', error);
+    } catch {
       // Show a fallback message
       setBooks([]);
     } finally {
