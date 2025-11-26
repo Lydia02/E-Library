@@ -30,8 +30,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
+      } catch {
         localStorage.removeItem('user');
       }
     }
@@ -65,7 +64,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('authToken', userData.token);
     } catch (error) {
-      console.error('Login error:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -99,7 +97,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('authToken', userData.token);
     } catch (error) {
-      console.error('Signup error:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -115,11 +112,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const updateProfile = async (profileData: Partial<User>) => {
     try {
       setLoading(true);
-      console.log('AuthContext: Updating profile with data:', profileData);
 
       // Use the profile service for actual API updates
       const updatedProfile = await profileService.updateProfile(profileData);
-      console.log('AuthContext: Received updated profile:', updatedProfile);
 
       // Update local user state - merge the updated profile data with existing user
       if (user && updatedProfile) {
@@ -127,12 +122,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { stats: _stats, ...userFields } = updatedProfile as unknown as { stats?: unknown; [key: string]: unknown };
         const updatedUser = { ...user, ...userFields };
-        console.log('AuthContext: Setting updated user:', updatedUser);
         setUser(updatedUser);
         localStorage.setItem('user', JSON.stringify(updatedUser));
       }
     } catch (error) {
-      console.error('Profile update error:', error);
       // For development, fall back to local update
       if (user) {
         const updatedUser = { ...user, ...profileData };

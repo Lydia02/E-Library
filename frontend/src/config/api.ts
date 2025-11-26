@@ -44,6 +44,8 @@ export const getAuthHeaders = () => {
   };
 };
 
-// Log current environment
-console.log(`🚀 API Mode: ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
-console.log(`🌐 API Base URL: ${API_BASE_URL}`);
+// Log current environment (only in development)
+if (!isProduction) {
+  console.log(`API Mode: DEVELOPMENT`);
+  console.log(`API Base URL: ${API_BASE_URL}`);
+}

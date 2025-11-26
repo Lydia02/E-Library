@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import app from './server.js';
 import { testConnection } from './config/database.js';
+import logger from './utils/logger.js';
 
 dotenv.config();
 
@@ -9,26 +10,23 @@ const PORT = process.env.PORT || 5000;
 // Start server
 const startServer = async () => {
   try {
-    console.log('E-Library API Server');
-    console.log('Digital Book Access for African Communities');
-    console.log('');
+    logger.info('E-Library API Server');
+    logger.info('Digital Book Access for African Communities');
 
     // Test PostgreSQL connection
-    console.log('Testing PostgreSQL connection...');
+    logger.info('Testing PostgreSQL connection...');
     const dbConnected = await testConnection();
-    console.log('');
 
     if (!dbConnected) {
-      console.error('Warning: PostgreSQL connection failed, but server will start anyway');
-      console.log('');
+      logger.warn('Warning: PostgreSQL connection failed, but server will start anyway');
     }
 
     app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-      console.log('Ready to serve requests!');
+      logger.info(`Server running on http://localhost:${PORT}`);
+      logger.success('Ready to serve requests!');
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    logger.error('Failed to start server:', error.message);
     process.exit(1);
   }
 };

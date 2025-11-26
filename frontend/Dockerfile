@@ -18,7 +18,6 @@ RUN npm run build
 # Production stage - Use latest Nginx Alpine
 FROM nginx:1.27-alpine3.21
 
-# Copy built files from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy nginx configuration
