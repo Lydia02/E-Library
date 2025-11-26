@@ -73,14 +73,21 @@
         DB_USER: "{{ lookup('env', 'DB_USER') }}"
         DB_PASSWORD: "{{ lookup('env', 'DB_PASSWORD') }}"
 
-    - name: Wait for services to be healthy
+    - name: Wait for backend to be ready
       wait_for:
-        port: "{{ item }}"
-        delay: 10
+        host: localhost
+        port: 5000
+        delay: 5
         timeout: 120
-      loop:
-        - 3000
-        - 5000
+        state: started
+
+    - name: Wait for frontend to be ready
+      wait_for:
+        host: localhost
+        port: 3000
+        delay: 5
+        timeout: 120
+        state: started
 
     - name: Display deployment info
       debug:
