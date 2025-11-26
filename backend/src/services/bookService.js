@@ -1,97 +1,106 @@
 import pool from '../config/database.js';
+import { db } from '../config/firebase.js';
 
 const getAllBooks = async (filters = {}) => {
   try {
-    let query = 'SELECT * FROM books WHERE 1=1';
-    const params = [];
-    let paramCount = 1;
+    // Fetch from Firebase Firestore
+    let booksQuery = db.collection('books');
 
+    // Apply filters
     if (filters.genre) {
-      query += ` AND $${paramCount} = ANY(genres)`;
-      params.push(filters.genre);
-      paramCount++;
+      booksQuery = booksQuery.where('genres', 'array-contains', filters.genre);
     }
 
     if (filters.author) {
-      query += ` AND author = $${paramCount}`;
-      params.push(filters.author);
-      paramCount++;
+      booksQuery = booksQuery.where('author', '==', filters.author);
     }
 
-    if (filters.search) {
-      query += ` AND title_lower LIKE $${paramCount}`;
-      params.push(`%${filters.search.toLowerCase()}%`);
-      paramCount++;
-    }
+    // Apply sorting
+    const sortBy = filters.sortBy || 'createdAt';
+    const sortOrder = filters.sortOrder || 'desc';
+    booksQuery = booksQuery.orderBy(sortBy, sortOrder.toLowerCase());
 
-    const sortBy = filters.sortBy || 'created_at';
-    const sortOrder = filters.sortOrder || 'DESC';
-    query += ` ORDER BY ${sortBy} ${sortOrder}`;
-
+    // Apply limit
     const limit = parseInt(filters.limit) || 20;
+    booksQuery = booksQuery.limit(limit);
+
+    const snapshot = await booksQuery.get();
+
+    let books = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        title: data.title || 'Untitled',
+        author: data.author || 'Unknown Author',
+        isbn: data.isbn || null,
+        description: data.description || null,
+        coverImage: data.coverImage || null,
+        publishedYear: data.publishedYear || null,
+        publisher: data.publisher || null,
+        pageCount: data.pageCount || null,
+        language: data.language || 'en',
+        genres: data.genres || [],
+        rating: parseFloat(data.rating) || 0,
+        totalRatings: data.totalRatings || 0,
+        createdBy: data.createdBy || null,
+        isUserGenerated: data.isUserGenerated || false,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt || new Date()),
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt || new Date())
+      };
+    });
+
+    // Apply search filter (client-side since Firestore doesn't support LIKE)
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      books = books.filter(book =>
+        book.title.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply offset
     const offset = parseInt(filters.offset) || 0;
-    query += ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-    params.push(limit, offset);
+    if (offset > 0) {
+      books = books.slice(offset);
+    }
 
-    const result = await pool.query(query, params);
-
-    return result.rows.map(book => ({
-      id: book.id.toString(),
-      title: book.title,
-      author: book.author,
-      isbn: book.isbn,
-      description: book.description,
-      coverImage: book.cover_image,
-      publishedYear: book.published_year,
-      publisher: book.publisher,
-      pageCount: book.page_count,
-      language: book.language,
-      genres: book.genres,
-      rating: parseFloat(book.rating),
-      totalRatings: book.total_ratings,
-      createdBy: book.created_by,
-      isUserGenerated: book.is_user_generated,
-      createdAt: book.created_at,
-      updatedAt: book.updated_at
-    }));
+    return books;
   } catch (error) {
-    console.error('Error getting books:', error);
+    console.error('Error getting books from Firebase:', error);
     throw error;
   }
 };
 
 const getBookById = async (bookId) => {
   try {
-    const result = await pool.query(`
-      SELECT * FROM books WHERE id = $1
-    `, [bookId]);
+    // Fetch from Firebase Firestore
+    const doc = await db.collection('books').doc(bookId).get();
 
     if (result.rows.length === 0) {
       return null;
     }
 
-    const book = result.rows[0];
+    const data = doc.data();
     return {
-      id: book.id.toString(),
-      title: book.title,
-      author: book.author,
-      isbn: book.isbn,
-      description: book.description,
-      coverImage: book.cover_image,
-      publishedYear: book.published_year,
-      publisher: book.publisher,
-      pageCount: book.page_count,
-      language: book.language,
-      genres: book.genres,
-      rating: parseFloat(book.rating),
-      totalRatings: book.total_ratings,
-      createdBy: book.created_by,
-      isUserGenerated: book.is_user_generated,
-      createdAt: book.created_at,
-      updatedAt: book.updated_at
+      id: doc.id,
+      title: data.title || 'Untitled',
+      author: data.author || 'Unknown Author',
+      isbn: data.isbn || null,
+      description: data.description || null,
+      coverImage: data.coverImage || null,
+      publishedYear: data.publishedYear || null,
+      publisher: data.publisher || null,
+      pageCount: data.pageCount || null,
+      language: data.language || 'en',
+      genres: data.genres || [],
+      rating: parseFloat(data.rating) || 0,
+      totalRatings: data.totalRatings || 0,
+      createdBy: data.createdBy || null,
+      isUserGenerated: data.isUserGenerated || false,
+      createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt || new Date()),
+      updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt || new Date())
     };
   } catch (error) {
-    console.error('Error getting book:', error);
+    console.error('Error getting book from Firebase:', error);
     throw error;
   }
 };
@@ -274,26 +283,21 @@ const deleteBook = async (bookId) => {
 
 const getBooksCount = async (filters = {}) => {
   try {
-    let query = 'SELECT COUNT(*) FROM books WHERE 1=1';
-    const params = [];
-    let paramCount = 1;
+    // Fetch count from Firebase Firestore
+    let booksQuery = db.collection('books');
 
     if (filters.genre) {
-      query += ` AND $${paramCount} = ANY(genres)`;
-      params.push(filters.genre);
-      paramCount++;
+      booksQuery = booksQuery.where('genres', 'array-contains', filters.genre);
     }
 
     if (filters.author) {
-      query += ` AND author = $${paramCount}`;
-      params.push(filters.author);
-      paramCount++;
+      booksQuery = booksQuery.where('author', '==', filters.author);
     }
 
-    const result = await pool.query(query, params);
-    return parseInt(result.rows[0].count);
+    const snapshot = await booksQuery.get();
+    return snapshot.size;
   } catch (error) {
-    console.error('Error getting books count:', error);
+    console.error('Error getting books count from Firebase:', error);
     throw error;
   }
 };

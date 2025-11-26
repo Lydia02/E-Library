@@ -2,24 +2,25 @@ import pool from '../config/database.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import logger from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 async function runMigration() {
-  console.log('🔄 Starting database migration...\n');
+  logger.info('🔄 Starting database migration...');
 
   try {
     // Read the schema file
     const schemaPath = join(__dirname, 'schema.sql');
     const schemaSql = readFileSync(schemaPath, 'utf8');
 
-    console.log('📄 Running schema.sql...');
+  logger.info('📄 Running schema.sql...');
 
     // Execute the schema
     await pool.query(schemaSql);
 
-    console.log('✅ Schema created successfully!\n');
+  logger.info('✅ Schema created successfully!');
 
     // Verify tables were created
     const result = await pool.query(`
@@ -29,12 +30,12 @@ async function runMigration() {
       ORDER BY table_name
     `);
 
-    console.log('📋 Tables created:');
+    logger.info('📋 Tables created:');
     result.rows.forEach(row => {
-      console.log(`   ✓ ${row.table_name}`);
+      logger.info(`   ✓ ${row.table_name}`);
     });
 
-    console.log('\n✨ Migration completed successfully!');
+    logger.info('✨ Migration completed successfully!');
     process.exit(0);
   } catch (error) {
     console.error('❌ Migration failed:', error.message);

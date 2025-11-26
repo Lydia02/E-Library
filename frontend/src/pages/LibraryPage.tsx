@@ -127,13 +127,14 @@ const LibraryPage: React.FC = () => {
   const fetchUserBooks = async () => {
     setLoading(true);
     try {
-      // Fetch user's own books using UserBooksService
+      // Fetch user' own books using UserBooksService
       const userBooksData = await UserBooksService.getUserBooks();
       const booksArray = Array.isArray(userBooksData) ? userBooksData : [];
       setUserBooks(booksArray);
     } catch {
       // Show empty state or error message
       setUserBooks([]);
+
     } finally {
       setLoading(false);
     }
@@ -437,23 +438,19 @@ const LibraryPage: React.FC = () => {
                 }}>
                   <div className="position-relative">
                     <img
-                      src={(() => {
+                        src={(() => {
                         // Prioritize custom cover image URL
                         if (book.coverImage && book.coverImage.trim()) {
-                          console.log('Using custom cover:', book.coverImage);
                           return book.coverImage;
                         }
                         // Then try database cover URLs
                         if (book.book?.coverUrl && book.book.coverUrl.trim()) {
-                          console.log('Using book coverUrl:', book.book.coverUrl);
                           return book.book.coverUrl;
                         }
                         if (book.book?.coverImage && book.book.coverImage.trim()) {
-                          console.log('Using book coverImage:', book.book.coverImage);
                           return book.book.coverImage;
                         }
                         // Fall back to generated cover
-                        console.log('Using generated cover for:', bookTitle);
                         return getGenericBookCover(bookTitle, bookGenre);
                       })()}
                       className="card-img-top"
@@ -467,14 +464,11 @@ const LibraryPage: React.FC = () => {
                       }}
                       onClick={() => setSelectedBook(book)}
                       onError={(e) => {
-                        console.log('Image failed to load, falling back to generated cover');
                         // If any image fails to load, fallback to generic cover
                         const target = e.currentTarget as HTMLImageElement;
                         target.src = getGenericBookCover(bookTitle, bookGenre);
                       }}
-                      onLoad={(e) => {
-                        console.log('Image loaded successfully:', (e.currentTarget as HTMLImageElement).src);
-                      }}
+                      onLoad={() => { /* image loaded */ }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'scale(1.02)';
                       }}

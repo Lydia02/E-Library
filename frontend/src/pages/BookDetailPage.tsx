@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import type { Book } from '../types';
+import { API_ENDPOINTS } from '../config/api';
 
 const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +38,7 @@ const BookDetailPage: React.FC = () => {
     setLoading(true);
     try {
       // Fetch book details from the real API
-      const response = await fetch(`https://summative-a-react-discovery-app-lydia02.onrender.com/api/books/${id}`);
+      const response = await fetch(API_ENDPOINTS.BOOK_BY_ID(id!));
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
 const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -67,7 +68,7 @@ const ResetPasswordPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post('https://summative-a-react-discovery-app-lydia02.onrender.com/api/auth/reset-password', {
+      const response = await axios.post(API_ENDPOINTS.RESET_PASSWORD, {
         token,
         newPassword: formData.newPassword
       });

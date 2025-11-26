@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -21,7 +22,7 @@ const ForgotPasswordPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post('https://summative-a-react-discovery-app-lydia02.onrender.com/api/auth/forgot-password', {
+      const response = await axios.post(API_ENDPOINTS.FORGOT_PASSWORD, {
         email
       });
 
@@ -29,7 +30,7 @@ const ForgotPasswordPage: React.FC = () => {
       
       // In development, show the reset token
       if (response.data.data.resetToken) {
-        console.log('Reset token:', response.data.data.resetToken);
+        // In development, show reset token in the UI message only
         setMessage(
           response.data.data.message + 
           ` (Development: Reset token is ${response.data.data.resetToken})`

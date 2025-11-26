@@ -12,19 +12,16 @@ const api = axios.create({
 // Add token to requests
 api.interceptors.request.use(
   (config) => {
-    // Try to get token from localStorage
-    let token = localStorage.getItem('authToken');
-    console.log('authToken from localStorage:', token);
+  // Try to get token from localStorage
+  let token = localStorage.getItem('authToken');
     
     if (!token) {
       // Fallback: try to get from user object
-      const userStr = localStorage.getItem('user');
-      console.log('user string from localStorage:', userStr);
+  const userStr = localStorage.getItem('user');
       if (userStr) {
         try {
           const user = JSON.parse(userStr);
           token = user.token;
-          console.log('token from user object:', token);
         } catch {
           console.warn('Failed to parse user from localStorage');
         }
@@ -33,7 +30,6 @@ api.interceptors.request.use(
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('Setting Authorization header:', `Bearer ${token}`);
     } else {
       console.warn('No token found - using mock token for development');
       // For development: use a mock token if no real token is available
@@ -106,11 +102,7 @@ class UserBooksService {
   // Add a new user book
   static async addUserBook(bookData: AddUserBookRequest): Promise<UserBook> {
     try {
-      console.log('Sending book data:', bookData);
-      const response = await api.post('/user-books', bookData);
-      console.log('Full response:', response);
-      console.log('Response data:', response.data);
-      console.log('Response data.data:', response.data.data);
+  const response = await api.post('/user-books', bookData);
       return response.data.data?.userBook || response.data.data || response.data;
     } catch (error: unknown) {
       console.error('Error adding user book:', error);

@@ -28,6 +28,14 @@
         group: "{{ ansible_user }}"
         mode: '0644'
 
+    - name: Copy Firebase service account key
+      copy:
+        src: files/serviceAccountKey.json
+        dest: /opt/e-library/serviceAccountKey.json
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0666'
+
     - name: Create environment file
       copy:
         dest: /opt/e-library/.env
@@ -43,6 +51,12 @@
         group: "{{ ansible_user }}"
         mode: '0600'
       no_log: true
+
+    - name: Stop existing containers
+      command: docker-compose down
+      args:
+        chdir: /opt/e-library
+      ignore_errors: yes
 
     - name: Pull latest images
       command: docker-compose pull
@@ -65,18 +79,57 @@
         DB_USER: "{{ lookup('env', 'DB_USER') }}"
         DB_PASSWORD: "{{ lookup('env', 'DB_PASSWORD') }}"
 
-    - name: Wait for services to be healthy
-      wait_for:
-        port: "{{ item }}"
-        delay: 10
-        timeout: 120
-      loop:
-        - 3000
-        - 5000
+    - name: Wait for containers to initialize
+      pause:
+        seconds: 30
+
+    - name: Check container status
+      command: docker ps
+      args:
+        chdir: /opt/e-library
+      register: containers
+
+    - name: Display container status
+      debug:
+        msg: "{{ containers.stdout_lines }}"
+
+    - name: Check backend logs
+      command: docker logs elibrary-backend --tail 50
+      args:
+        chdir: /opt/e-library
+      register: backend_logs
+      ignore_errors: yes
+
+    - name: Display backend logs
+      debug:
+        msg: "{{ backend_logs.stdout_lines }}"
+      when: backend_logs.stdout_lines is defined
+
+    - name: Check frontend logs
+      command: docker logs elibrary-frontend --tail 20
+      args:
+        chdir: /opt/e-library
+      register: frontend_logs
+      ignore_errors: yes
+
+    - name: Display frontend logs
+      debug:
+        msg: "{{ frontend_logs.stdout_lines }}"
+      when: frontend_logs.stdout_lines is defined
 
     - name: Display deployment info
       debug:
         msg:
-          - "Deployment completed successfully!"
-          - "Frontend: http://74.249.251.94:3000"
-          - "Backend: http://74.249.251.94:5000"
+          - "=========================================="
+          - " DEPLOYMENT COMPLETED SUCCESSFULLY!"
+          - "=========================================="
+          - ""
+          - " Application URLs:"
+          - "   Frontend: http://52.176.217.99:3000"
+          - "   Backend:  http://52.176.217.99:5000"
+          - ""
+          - "Deployed Images:"
+          - "   Backend:  {{ lookup('env', 'ACR_LOGIN_SERVER') }}/elibrary-backend:{{ lookup('env', 'IMAGE_TAG') }}"
+          - "   Frontend: {{ lookup('env', 'ACR_LOGIN_SERVER') }}/elibrary-frontend:{{ lookup('env', 'IMAGE_TAG') }}"
+          - ""
+          - "=========================================="

@@ -8,6 +8,7 @@ import {
   resetFilters,
 } from '../redux/filterSlice';
 import BookCard from '../components/BookCard';
+import { API_ENDPOINTS } from '../config/api';
 import type { Book } from '../types';
 import FavoritesService from '../services/favoritesService';
 import { useAuth } from '../contexts/AuthContext';
@@ -39,7 +40,7 @@ const BooksPage: React.FC = () => {
     setLoading(true);
     try {
       // Fetch books from the real API
-      const response = await fetch('https://summative-a-react-discovery-app-lydia02.onrender.com/api/books');
+      const response = await fetch(API_ENDPOINTS.BOOKS);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -59,12 +60,9 @@ const BooksPage: React.FC = () => {
 
   const loadFavorites = async () => {
     try {
-      console.log('Loading favorites...');
       const favoritesData = await FavoritesService.getUserFavorites();
-      console.log('Favorites data:', favoritesData);
       // Trim whitespace from book IDs
       const favoriteIds = favoritesData.map(fav => fav.book.id.trim());
-      console.log('Favorite IDs (trimmed):', favoriteIds);
       setFavorites(favoriteIds);
     } catch (error) {
       console.error('Error loading favorites:', error);
@@ -78,17 +76,14 @@ const BooksPage: React.FC = () => {
 
     try {
       const trimmedBookId = bookId.trim();
-      console.log('Toggling favorite for book:', trimmedBookId);
       if (favorites.includes(trimmedBookId)) {
-        console.log('Removing from favorites...');
         await FavoritesService.removeFromFavorites(trimmedBookId);
         setFavorites(prev => prev.filter(id => id !== trimmedBookId));
       } else {
-        console.log('Adding to favorites...');
         await FavoritesService.addToFavorites(trimmedBookId);
         setFavorites(prev => [...prev, trimmedBookId]);
       }
-      console.log('Favorites after toggle:', favorites);
+      // favorites updated
     } catch (error) {
       console.error('Error toggling favorite:', error);
     }

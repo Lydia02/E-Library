@@ -25,19 +25,17 @@ const ThemeToggle: React.FC = () => {
     const newTheme = !isDark;
     setIsDark(newTheme);
 
-    console.log('Theme toggle clicked! Switching to:', newTheme ? 'dark' : 'light');
+  // theme toggle invoked
 
     // Add a smooth transition class temporarily
     document.documentElement.classList.add('theme-transitioning');
 
     if (newTheme) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('theme', 'dark');
-      console.log('Dark theme applied');
+  document.documentElement.setAttribute('data-theme', 'dark');
+  localStorage.setItem('theme', 'dark');
     } else {
-      document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem('theme', 'light');
-      console.log('Light theme applied');
+  document.documentElement.removeAttribute('data-theme');
+  localStorage.setItem('theme', 'light');
     }
 
     // Remove transition class after animation completes
