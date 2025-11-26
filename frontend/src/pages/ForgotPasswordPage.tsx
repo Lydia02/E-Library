@@ -30,7 +30,7 @@ const ForgotPasswordPage: React.FC = () => {
       
       // In development, show the reset token
       if (response.data.data.resetToken) {
-        console.log('Reset token:', response.data.data.resetToken);
+        // In development, show reset token in the UI message only
         setMessage(
           response.data.data.message + 
           ` (Development: Reset token is ${response.data.data.resetToken})`

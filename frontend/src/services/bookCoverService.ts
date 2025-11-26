@@ -25,7 +25,7 @@ class BookCoverService {
           return source;
         }
       } catch {
-        console.log(`Cover source failed: ${source}`);
+        // ignore failed source and continue to next
         continue;
       }
     }

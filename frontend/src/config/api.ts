@@ -44,6 +44,4 @@ export const getAuthHeaders = () => {
   };
 };
 
-// Log current environment
-console.log(`🚀 API Mode: ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
-console.log(`🌐 API Base URL: ${API_BASE_URL}`);
+// Environment logs removed to avoid printing URLs and environment info in console

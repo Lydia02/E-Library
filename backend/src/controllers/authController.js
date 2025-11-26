@@ -2,6 +2,7 @@ import { auth, db } from '../config/firebase.js';
 import { sendCreated, sendSuccess, sendNotFound, sendBadRequest, sendError } from '../utils/response.js';
 import ProfileService from '../services/profileService.js';
 import bcrypt from 'bcrypt';
+import logger from '../utils/logger.js';
 
 // Login function - Supports both Firebase and PostgreSQL authentication
 const login = async (req, res, next) => {
@@ -25,10 +26,10 @@ const login = async (req, res, next) => {
       const firebaseUser = await auth.getUserByEmail(email);
       if (firebaseUser) {
         firebaseAuthenticated = true;
-        console.log('User authenticated via Firebase');
+        logger.info('User authenticated via Firebase');
       }
     } catch (firebaseError) {
-      console.warn('Firebase authentication not available, using PostgreSQL:', firebaseError.message);
+      logger.warn('Firebase authentication not available, using PostgreSQL:', firebaseError.message);
     }
 
     // Step 3: If Firebase auth fails, validate password using PostgreSQL (bcrypt)
@@ -41,7 +42,7 @@ const login = async (req, res, next) => {
       if (!isPasswordValid) {
         return sendBadRequest(res, 'Invalid email or password');
       }
-      console.log('User authenticated via PostgreSQL');
+      logger.info('User authenticated via PostgreSQL');
     }
 
     // User authenticated successfully
@@ -60,7 +61,7 @@ const login = async (req, res, next) => {
       message: 'Login successful'
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error:', error);
     return sendError(res, 500, 'Login failed');
   }
 };
@@ -97,11 +98,11 @@ const signup = async (req, res, next) => {
         displayName: userName,
         emailVerified: false
       });
-      userId = firebaseUser.uid;
-      console.log('Firebase user created:', userId);
+  userId = firebaseUser.uid;
+  logger.info('Firebase user created:', userId);
     } catch (firebaseError) {
       // If Firebase fails, use fallback ID
-      console.warn('Firebase Auth failed, using fallback ID:', firebaseError.message);
+      logger.warn('Firebase Auth failed, using fallback ID:', firebaseError.message);
       userId = 'user-' + Buffer.from(email).toString('base64').replace(/[^a-zA-Z0-9]/g, '');
     }
 
@@ -130,7 +131,7 @@ const signup = async (req, res, next) => {
       message: 'Account created successfully'
     });
   } catch (error) {
-    console.error('Signup error:', error);
+    logger.error('Signup error:', error);
     return sendError(res, 500, 'Signup failed: ' + error.message);
   }
 };
@@ -158,7 +159,7 @@ const createUserProfile = async (req, res, next) => {
 
     return sendCreated(res, { user: { uid, ...userProfile } }, 'User profile created successfully');
   } catch (error) {
-    console.error('Create profile error:', error);
+    logger.error('Create profile error:', error);
     next(error);
   }
 };
@@ -261,7 +262,7 @@ const getProfile = async (req, res, next) => {
     const profile = await ProfileService.getUserProfile(uid);
     return sendSuccess(res, 200, { profile });
   } catch (error) {
-    console.error('Get profile error:', error);
+    logger.error('Get profile error:', error);
     if (error.message === 'User not found') {
       return sendNotFound(res, 'User profile not found');
     }
@@ -281,7 +282,7 @@ const updateUserProfile = async (req, res, next) => {
       message: 'Profile updated successfully'
     });
   } catch (error) {
-    console.error('Update profile error:', error);
+    logger.error('Update profile error:', error);
     if (error.message.includes('must be')) {
       return sendBadRequest(res, error.message);
     }
@@ -302,7 +303,7 @@ const updateReadingGoal = async (req, res, next) => {
     await ProfileService.updateReadingGoal(uid, goal);
     return sendSuccess(res, 200, { message: 'Reading goal updated successfully' });
   } catch (error) {
-    console.error('Update reading goal error:', error);
+    logger.error('Update reading goal error:', error);
     return sendError(res, 500, 'Failed to update reading goal');
   }
 };
@@ -316,7 +317,7 @@ const updatePreferences = async (req, res, next) => {
     await ProfileService.updatePreferences(uid, preferences);
     return sendSuccess(res, 200, { message: 'Preferences updated successfully' });
   } catch (error) {
-    console.error('Update preferences error:', error);
+    logger.error('Update preferences error:', error);
     return sendError(res, 500, 'Failed to update preferences');
   }
 };
@@ -328,7 +329,7 @@ const getDetailedStats = async (req, res, next) => {
     const stats = await ProfileService.calculateUserStats(uid);
     return sendSuccess(res, 200, { stats });
   } catch (error) {
-    console.error('Get detailed stats error:', error);
+    logger.error('Get detailed stats error:', error);
     return sendError(res, 500, 'Failed to get user statistics');
   }
 };
@@ -348,7 +349,7 @@ const deleteUserAccount = async (req, res, next) => {
 
     return sendSuccess(res, 200, { message: 'Account deleted successfully' });
   } catch (error) {
-    console.error('Delete account error:', error);
+    logger.error('Delete account error:', error);
     return sendError(res, 500, 'Failed to delete account');
   }
 };
@@ -380,8 +381,8 @@ const forgotPassword = async (req, res, next) => {
     });
 
 
-    // For development, we'll just return the token
-    console.log(`Password reset token for ${email}: ${resetToken}`);
+  // For development, we'll just return the token
+  logger.info(`Password reset token for ${email}: ${resetToken}`);
 
     return sendSuccess(res, 200, {
       message: 'Password reset instructions have been sent to your email',
@@ -389,7 +390,7 @@ const forgotPassword = async (req, res, next) => {
       resetToken: resetToken
     });
   } catch (error) {
-    console.error('Forgot password error:', error);
+    logger.error('Forgot password error:', error);
     return sendError(res, 500, 'Failed to process password reset request');
   }
 };
@@ -440,7 +441,7 @@ const resetPassword = async (req, res, next) => {
       message: 'Password has been reset successfully. You can now login with your new password.'
     });
   } catch (error) {
-    console.error('Reset password error:', error);
+    logger.error('Reset password error:', error);
     return sendError(res, 500, 'Failed to reset password');
   }
 };

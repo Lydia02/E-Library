@@ -50,7 +50,7 @@ const DashboardPage: React.FC = () => {
   const fetchRecommendations = async () => {
     try {
       // Fetch some books for recommendations
-      const response = await fetch('API_ENDPOINTS.BOOKS?limit=6');
+      const response = await fetch(`${API_ENDPOINTS.BOOKS}?limit=6`);
       if (response.ok) {
         const data = await response.json();
         // The API returns books in data.data.books structure
@@ -65,7 +65,6 @@ const DashboardPage: React.FC = () => {
 
   const fetchUserStats = async () => {
     try {
-      console.log('Dashboard: Fetching user stats...');
       // Fetch user book stats from the user-books API (same as ProfilePage)
       const response = await fetch(API_ENDPOINTS.USER_BOOKS_STATS, {
         headers: {
@@ -75,7 +74,7 @@ const DashboardPage: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Dashboard: Stats response:', data);
+        
         const stats = data.data?.stats || {};
 
         // Map the stats to the expected format
@@ -98,7 +97,6 @@ const DashboardPage: React.FC = () => {
           recentActivity: []
         };
 
-        console.log('Dashboard: Mapped user stats:', userStats);
         setUserStats(userStats);
       } else {
         throw new Error('Failed to fetch stats');
