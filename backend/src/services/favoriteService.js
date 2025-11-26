@@ -11,7 +11,9 @@ const addFavorite = async (userId, bookId) => {
       .get();
 
     if (!existingFavorite.empty) {
-      throw new Error('Favorite already exists');
+      const err = new Error('Favorite already exists');
+      err.statusCode = 409;
+      throw err;
     }
 
     // Add new favorite to Firebase
@@ -96,7 +98,93 @@ const getUserFavorites = async (userId, filters = {}) => {
       .orderBy('createdAt', 'desc')
       .limit(limit);
 
-    const favoritesSnapshot = await favoritesQuery.get();
+    let favoritesSnapshot;
+    try {
+      favoritesSnapshot = await favoritesQuery.get();
+    } catch (idxErr) {
+      // Firestore may require a composite index for this query. Fall back to Postgres favorites table
+      logger.warn('Firestore favorites query failed, attempting Postgres fallback:', idxErr.message || idxErr);
+
+      try {
+        const res = await pool.query(`SELECT * FROM favorites WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2`, [userId, limit]);
+        if (!res || !res.rows || res.rows.length === 0) return [];
+
+        // Map Postgres favorites to the same shape as Firestore favorite entries
+        const mapped = await Promise.all(res.rows.map(async (row) => {
+          const fav = {
+            favoriteId: row.id ? row.id.toString() : `${row.user_id}-${row.book_id}`,
+            favoritedAt: row.created_at,
+            bookId: row.book_id
+          };
+
+          // Prefer Postgres book data if available
+          try {
+            const bookRes = await pool.query('SELECT * FROM books WHERE id = $1', [row.book_id]);
+            if (bookRes && bookRes.rows && bookRes.rows.length > 0) {
+              const book = bookRes.rows[0];
+              return {
+                favoriteId: fav.favoriteId,
+                favoritedAt: fav.favoritedAt,
+                book: {
+                  id: book.id.toString(),
+                  title: book.title,
+                  author: book.author,
+                  isbn: book.isbn,
+                  description: book.description,
+                  coverImage: book.cover_image,
+                  publishedYear: book.published_year,
+                  publisher: book.publisher,
+                  pageCount: book.page_count,
+                  language: book.language,
+                  genres: book.genres,
+                  rating: parseFloat(book.rating) || 0,
+                  totalRatings: book.total_ratings || 0
+                }
+              };
+            }
+          } catch (pgErr) {
+            logger.warn('Postgres book lookup failed during favorites fallback:', pgErr.message || pgErr);
+          }
+
+          // As a last resort try Firestore book doc
+          try {
+            const bookDoc = await db.collection('books').doc(row.book_id).get();
+            if (bookDoc && bookDoc.exists) {
+              const bookData = bookDoc.data();
+              return {
+                favoriteId: fav.favoriteId,
+                favoritedAt: fav.favoritedAt,
+                book: {
+                  id: bookDoc.id,
+                  title: bookData.title || 'Untitled',
+                  author: bookData.author || 'Unknown Author',
+                  isbn: bookData.isbn || null,
+                  description: bookData.description || null,
+                  coverImage: bookData.coverImage || null,
+                  publishedYear: bookData.publishedYear || null,
+                  publisher: bookData.publisher || null,
+                  pageCount: bookData.pageCount || null,
+                  language: bookData.language || 'en',
+                  genres: bookData.genres || [],
+                  rating: parseFloat(bookData.rating) || 0,
+                  totalRatings: bookData.totalRatings || 0
+                }
+              };
+            }
+          } catch (fsErr) {
+            logger.warn('Firestore book lookup failed during favorites fallback:', fsErr.message || fsErr);
+          }
+
+          // If everything fails, skip this favorite
+          return null;
+        }));
+
+        return mapped.filter(f => f !== null);
+      } catch (pgFallbackErr) {
+        logger.error('Postgres fallback for favorites failed:', pgFallbackErr.message || pgFallbackErr);
+        throw idxErr; // rethrow original index error if fallback fails
+      }
+    }
 
     if (favoritesSnapshot.empty) {
       return [];
