@@ -1,4 +1,5 @@
 import { db } from '../config/firebase.js';
+import logger from '../utils/logger.js';
 
 /**
  * Get books count from database
@@ -18,7 +19,7 @@ export const getBooksCount = async () => {
  * Clear all books from database
  */
 export const clearAllBooks = async () => {
-  console.log('🗑️  Clearing all books from database...');
+  logger.info('🗑️  Clearing all books from database...');
 
   try {
     const booksCollection = db.collection('books');
@@ -29,8 +30,8 @@ export const clearAllBooks = async () => {
       batch.delete(doc.ref);
     });
 
-    await batch.commit();
-    console.log(`✅ Successfully deleted ${existingBooks.size} books from database`);
+  await batch.commit();
+  logger.info(`✅ Successfully deleted ${existingBooks.size} books from database`);
     return { success: true, deletedCount: existingBooks.size };
   } catch (error) {
     console.error('❌ Error clearing books:', error);
@@ -62,9 +63,9 @@ export const initializeBooksIfEmpty = async () => {
     const count = await getBooksCount();
 
     if (isEmpty) {
-      console.log('📚 Database is empty. Please add books through the admin interface or API.');
+          logger.info('📚 Database is empty. Please add books through the admin interface or API.');
     } else {
-      console.log(`📚 Database contains ${count} books`);
+          logger.info(`📚 Database contains ${count} books`);
     }
   } catch (error) {
     console.error('❌ Error checking database:', error);
@@ -75,11 +76,11 @@ export const initializeBooksIfEmpty = async () => {
  * Refresh books (placeholder for admin functionality)
  */
 export const refreshBooks = async () => {
-  console.log('🔄 Refreshing books...');
+  logger.info('🔄 Refreshing books...');
 
   try {
     const count = await getBooksCount();
-    console.log(`✅ Database currently has ${count} books`);
+  logger.info(`✅ Database currently has ${count} books`);
 
     return {
       success: true,

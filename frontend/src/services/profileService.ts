@@ -68,9 +68,7 @@ export const profileService = {
    */
   async updateProfile(profileData: ProfileData): Promise<User & { stats: UserStats }> {
     try {
-      console.log('Sending profile update request with data:', profileData);
       const response = await apiClient.put('/auth/profile/update', profileData);
-      console.log('Profile update response:', response.data);
 
       return response.data.data.profile;
     } catch (error: unknown) {
