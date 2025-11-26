@@ -1,4 +1,4 @@
-import { db } from '../config/firebase.js';
+import pool from '../config/database.js';
 
 const addUserBook = async (userId, bookId, status = 'to-read', progress = 0) => {
   try {

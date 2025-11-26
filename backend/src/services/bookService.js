@@ -75,7 +75,7 @@ const getBookById = async (bookId) => {
     // Fetch from Firebase Firestore
     const doc = await db.collection('books').doc(bookId).get();
 
-    if (!doc.exists) {
+    if (result.rows.length === 0) {
       return null;
     }
 
