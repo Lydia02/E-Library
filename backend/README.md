@@ -2,7 +2,7 @@
 
 > RESTful API for E-Library - Digital Book Access for African Communities
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 - Node.js 18+
@@ -114,7 +114,7 @@ See `.env.example` for required variables
 - Error handling
 - CORS configuration
 
-## 📄 License
+##  License
 
 MIT License - see LICENSE file for details
 

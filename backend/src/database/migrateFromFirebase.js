@@ -4,7 +4,7 @@ import logger from '../utils/logger.js';
 
 const migrateBooks = async () => {
   try {
-    logger.info('📚 Starting books migration...');
+    logger.info(' Starting books migration...');
     const booksSnapshot = await db.collection('books').get();
     let count = 0;
     let skipped = 0;
@@ -54,15 +54,15 @@ const migrateBooks = async () => {
         logger.info(`  ✓ Migrated: ${data.title} (ID: ${result.rows[0].id})`);
         count++;
       } catch (error) {
-        logger.warn(`  ⚠ Skipped book ${doc.id}:`, error.message);
+        logger.warn(`   Skipped book ${doc.id}:`, error.message);
         skipped++;
       }
     }
 
-    logger.info(`✅ Migrated ${count} books (${skipped} skipped)`);
+    logger.info(` Migrated ${count} books (${skipped} skipped)`);
     return count;
   } catch (error) {
-    logger.error('❌ Books migration failed:', error);
+    logger.error(' Books migration failed:', error);
     throw error;
   }
 };
@@ -92,17 +92,17 @@ const migrateFavorites = async () => {
       count++;
     }
 
-    logger.info(`✅ Migrated ${count} favorites`);
+    logger.info(` Migrated ${count} favorites`);
     return count;
   } catch (error) {
-    logger.error('❌ Favorites migration failed:', error);
+    logger.error(' Favorites migration failed:', error);
     throw error;
   }
 };
 
 const migrateUserBooks = async () => {
   try {
-    logger.info('📖 Starting user_books migration...');
+    logger.info(' Starting user_books migration...');
     const userBooksSnapshot = await db.collection('user_books').get();
     let count = 0;
 
@@ -135,16 +135,16 @@ const migrateUserBooks = async () => {
       count++;
     }
 
-    logger.info(`✅ Migrated ${count} user_books`);
+    logger.info(` Migrated ${count} user_books`);
     return count;
   } catch (error) {
-    logger.error('❌ UserBooks migration failed:', error);
+    logger.error(' UserBooks migration failed:', error);
     throw error;
   }
 };
 
 const runFullMigration = async () => {
-  logger.info('🚀 Starting full Firebase → PostgreSQL migration...');
+  logger.info(' Starting full Firebase → PostgreSQL migration...');
   logger.info('================================================');
 
   const results = {
@@ -159,7 +159,7 @@ const runFullMigration = async () => {
     results.userBooks = await migrateUserBooks();
 
     logger.info('================================================');
-    logger.info('✅ Migration completed successfully!');
+    logger.info(' Migration completed successfully!');
     logger.info(`   Books: ${results.books}`);
     logger.info(`   Favorites: ${results.favorites}`);
     logger.info(`   User Books: ${results.userBooks}`);
@@ -168,7 +168,7 @@ const runFullMigration = async () => {
     return results;
   } catch (error) {
     logger.error('================================================');
-    logger.error('❌ Migration failed!');
+    logger.error(' Migration failed!');
     logger.error(error);
     logger.error('================================================');
     throw error;

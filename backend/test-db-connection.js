@@ -49,7 +49,7 @@ client.connect()
   process.exit(0);
   })
   .catch(err => {
-    console.error('❌ Connection failed!\n');
+    console.error(' Connection failed!\n');
     console.error('Error Details:');
     console.error('  Message:', err.message);
     console.error('  Code:', err.code);

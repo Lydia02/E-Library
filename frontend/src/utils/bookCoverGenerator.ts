@@ -12,7 +12,7 @@ export const generateGenericBookCover = (title: string): string => {
         </defs>
         <rect width="200" height="300" fill="url(#grad1)"/>
         <text x="100" y="130" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="white" opacity="0.9">
-          <tspan x="100" dy="0">📚</tspan>
+          <tspan x="100" dy="0"></tspan>
         </text>
         <text x="100" y="170" font-family="Arial, sans-serif" font-size="13" font-weight="600" text-anchor="middle" fill="white" opacity="0.95">
           <tspan x="100" dy="0">${title.substring(0, 14)}</tspan>
@@ -32,7 +32,7 @@ export const generateGenericBookCover = (title: string): string => {
         </defs>
         <rect width="200" height="300" fill="url(#grad2)"/>
         <text x="100" y="130" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="white" opacity="0.9">
-          <tspan x="100" dy="0">📖</tspan>
+          <tspan x="100" dy="0"></tspan>
         </text>
         <text x="100" y="170" font-family="Arial, sans-serif" font-size="13" font-weight="600" text-anchor="middle" fill="white" opacity="0.95">
           <tspan x="100" dy="0">${title.substring(0, 14)}</tspan>

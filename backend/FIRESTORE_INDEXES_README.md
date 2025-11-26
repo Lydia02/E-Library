@@ -102,9 +102,9 @@ After deploying:
 
 ## What These Indexes Fix
 
-- ✅ **Favorites**: Allows fetching user favorites sorted by creation date
-- ✅ **User Books**: Enables querying user's reading lists with filters
-- ✅ **Book Management**: Supports fetching books created by specific users
+-  **Favorites**: Allows fetching user favorites sorted by creation date
+-  **User Books**: Enables querying user's reading lists with filters
+-  **Book Management**: Supports fetching books created by specific users
 
 ## Troubleshooting
 

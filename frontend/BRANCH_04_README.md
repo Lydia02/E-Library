@@ -148,13 +148,13 @@ fetch(API_ENDPOINTS.PROFILE, {
 
 ### Environment Logging
 ```typescript
-console.log(`🚀 API Mode: ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
+console.log(` API Mode: ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
 console.log(`🌐 API Base URL: ${API_BASE_URL}`);
 ```
 
 **Output on page load:**
 ```
-🚀 API Mode: PRODUCTION
+ API Mode: PRODUCTION
 🌐 API Base URL: https://summative-a-react-discovery-app-lydia02.onrender.com
 ```
 

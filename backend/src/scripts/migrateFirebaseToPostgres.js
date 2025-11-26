@@ -13,11 +13,11 @@ const migrateBooks = async () => {
     const booksSnapshot = await db.collection('books').get();
 
     if (booksSnapshot.empty) {
-      logger.info('⚠️  No books found in Firebase to migrate');
+      logger.info('️  No books found in Firebase to migrate');
       return { success: true, migrated: 0 };
     }
 
-    logger.info(`📚 Found ${booksSnapshot.size} books in Firebase`);
+    logger.info(` Found ${booksSnapshot.size} books in Firebase`);
 
     let migrated = 0;
     let skipped = 0;
@@ -66,23 +66,23 @@ const migrateBooks = async () => {
           bookData.updatedAt?.toDate() || new Date()
         ]);
 
-        logger.info(`✅ Migrated: "${bookData.title}" by ${bookData.author}`);
+        logger.info(` Migrated: "${bookData.title}" by ${bookData.author}`);
         migrated++;
       } catch (error) {
-        logger.error(`❌ Error migrating book ${doc.id}:`, error.message);
+        logger.error(` Error migrating book ${doc.id}:`, error.message);
         errors++;
       }
     }
 
     logger.info(`\n📊 Migration Summary:`);
-    logger.info(`   ✅ Migrated: ${migrated} books`);
+    logger.info(`    Migrated: ${migrated} books`);
     logger.info(`   ⏭️  Skipped: ${skipped} books (already exist)`);
-    logger.info(`   ❌ Errors: ${errors} books`);
+    logger.info(`    Errors: ${errors} books`);
     logger.info(`   📈 Total processed: ${booksSnapshot.size} books\n`);
 
     return { success: true, migrated, skipped, errors, total: booksSnapshot.size };
   } catch (error) {
-    logger.error('❌ Migration failed:', error);
+    logger.error(' Migration failed:', error);
     throw error;
   }
 };
