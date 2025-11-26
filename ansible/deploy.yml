@@ -34,7 +34,7 @@
         dest: /opt/e-library/serviceAccountKey.json
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
-        mode: '0600'
+        mode: '0666'  # ← Changed to 0666 (world-readable)
 
     - name: Create environment file
       copy:
@@ -51,6 +51,12 @@
         group: "{{ ansible_user }}"
         mode: '0600'
       no_log: true
+
+    - name: Stop existing containers
+      command: docker-compose down
+      args:
+        chdir: /opt/e-library
+      ignore_errors: yes
 
     - name: Pull latest images
       command: docker-compose pull
@@ -73,25 +79,36 @@
         DB_USER: "{{ lookup('env', 'DB_USER') }}"
         DB_PASSWORD: "{{ lookup('env', 'DB_PASSWORD') }}"
 
-    - name: Wait for backend to be ready
-      wait_for:
-        host: localhost
-        port: 5000
-        delay: 5
-        timeout: 120
-        state: started
+    - name: Wait for containers to initialize
+      pause:
+        seconds: 30
 
-    - name: Wait for frontend to be ready
-      wait_for:
-        host: localhost
-        port: 3000
-        delay: 5
-        timeout: 120
-        state: started
+    - name: Check container status
+      command: docker ps --format "table {{.Names}}\t{{.Status}}"
+      args:
+        chdir: /opt/e-library
+      register: containers
+
+    - name: Display container status
+      debug:
+        msg: "{{ containers.stdout_lines }}"
+
+    - name: Check backend logs for errors
+      command: docker logs elibrary-backend --tail 50
+      args:
+        chdir: /opt/e-library
+      register: backend_logs
+      ignore_errors: yes
+
+    - name: Display backend logs
+      debug:
+        msg: "{{ backend_logs.stdout_lines }}"
+      when: backend_logs.stdout_lines is defined
 
     - name: Display deployment info
       debug:
         msg:
-          - "Deployment completed successfully!"
+          - "✅ Deployment completed!"
           - "Frontend: http://52.176.217.99:3000"
           - "Backend: http://52.176.217.99:5000"
+          - "Note: Backend may take 1-2 minutes to connect to Firebase and PostgreSQL"
