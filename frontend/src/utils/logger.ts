@@ -1,6 +1,7 @@
 // Lightweight logger wrapper for frontend
 // - In production (import.meta.env.PROD) info/debug are no-ops
-const isProd = typeof import.meta !== 'undefined' && !!(import.meta as any).env?.PROD;
+const meta = typeof import.meta !== 'undefined' ? (import.meta as unknown as { env?: { PROD?: boolean } }) : undefined;
+const isProd = !!meta?.env?.PROD;
 
 export const info = (...args: unknown[]) => {
   if (!isProd) console.log('[INFO]', ...args);

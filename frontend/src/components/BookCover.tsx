@@ -118,7 +118,7 @@ const BookCover: React.FC<BookCoverProps> = ({
           const cleanIsbn = isbn.replace(/[^0-9X]/g, '');
           covers.push(`https://covers.openlibrary.org/b/isbn/${cleanIsbn}-S.jpg`);
         }
-      } catch (error) {
+      } catch (_err) {
         // ignore cover fetch errors
       }
 
