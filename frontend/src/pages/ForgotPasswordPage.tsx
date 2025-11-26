@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -21,7 +22,7 @@ const ForgotPasswordPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post('https://summative-a-react-discovery-app-lydia02.onrender.com/api/auth/forgot-password', {
+      const response = await axios.post(API_ENDPOINTS.FORGOT_PASSWORD, {
         email
       });
 

@@ -67,7 +67,7 @@ const DashboardPage: React.FC = () => {
     try {
       console.log('Dashboard: Fetching user stats...');
       // Fetch user book stats from the user-books API (same as ProfilePage)
-      const response = await fetch('https://summative-a-react-discovery-app-lydia02.onrender.com/api/user-books/stats', {
+      const response = await fetch(API_ENDPOINTS.USER_BOOKS_STATS, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }

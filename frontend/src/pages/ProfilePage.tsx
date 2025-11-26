@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../components/ToastContainer';
 import type { User, UserStats, UserBook } from '../types';
+import { API_ENDPOINTS } from '../config/api';
 
 const ProfilePage: React.FC = () => {
   const { user, isAuthenticated, updateProfile } = useAuth();
@@ -27,7 +28,7 @@ const ProfilePage: React.FC = () => {
     setLoading(true);
     try {
       // Fetch user book stats from the user-books API
-      const response = await fetch('https://summative-a-react-discovery-app-lydia02.onrender.com/api/user-books/stats', {
+      const response = await fetch(API_ENDPOINTS.USER_BOOKS_STATS, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
