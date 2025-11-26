@@ -259,40 +259,68 @@ const BookDetailPage: React.FC = () => {
 
           <div className="card border-0 bg-light mb-4 p-4">
             <div className="row">
-              <div className="col-md-6 mb-3">
-                <h6 className="text-muted mb-2">Genre</h6>
-                <p className="mb-0">
-                  <span className="badge bg-primary">{book.genre}</span>
-                </p>
-              </div>
-              <div className="col-md-6 mb-3">
-                <h6 className="text-muted mb-2">Price</h6>
-                <p className="mb-0 book-price">${book.price.toFixed(2)}</p>
-              </div>
-              <div className="col-md-6 mb-3">
-                <h6 className="text-muted mb-2">Pages</h6>
-                <p className="mb-0">{book.pages || (book as Book).pageCount} pages</p>
-              </div>
-              <div className="col-md-6 mb-3">
-                <h6 className="text-muted mb-2">Publication Date</h6>
-                <p className="mb-0">
-                  {new Date(book.publicationDate).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
-              </div>
-              <div className="col-md-6 mb-3">
-                <h6 className="text-muted mb-2">Language</h6>
-                <p className="mb-0">{book.language}</p>
-              </div>
-              <div className="col-md-6 mb-3">
-                <h6 className="text-muted mb-2">ISBN</h6>
-                <p className="mb-0">
-                  <code>{book.isbn}</code>
-                </p>
-              </div>
+              {book.genres && book.genres.length > 0 && (
+                <div className="col-md-6 mb-3">
+                  <h6 className="text-muted mb-2">Genres</h6>
+                  <p className="mb-0">
+                    {book.genres.map((g: string) => (
+                      <span key={g} className="badge bg-primary me-1">{g}</span>
+                    ))}
+                  </p>
+                </div>
+              )}
+              {book.genre && (
+                <div className="col-md-6 mb-3">
+                  <h6 className="text-muted mb-2">Genre</h6>
+                  <p className="mb-0">
+                    <span className="badge bg-primary">{book.genre}</span>
+                  </p>
+                </div>
+              )}
+              {book.price !== undefined && (
+                <div className="col-md-6 mb-3">
+                  <h6 className="text-muted mb-2">Price</h6>
+                  <p className="mb-0 book-price">${book.price.toFixed(2)}</p>
+                </div>
+              )}
+              {(book.pages || book.pageCount) && (
+                <div className="col-md-6 mb-3">
+                  <h6 className="text-muted mb-2">Pages</h6>
+                  <p className="mb-0">{book.pages || book.pageCount} pages</p>
+                </div>
+              )}
+              {book.publicationDate && (
+                <div className="col-md-6 mb-3">
+                  <h6 className="text-muted mb-2">Publication Date</h6>
+                  <p className="mb-0">
+                    {new Date(book.publicationDate).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </p>
+                </div>
+              )}
+              {book.language && (
+                <div className="col-md-6 mb-3">
+                  <h6 className="text-muted mb-2">Language</h6>
+                  <p className="mb-0">{book.language}</p>
+                </div>
+              )}
+              {book.publisher && (
+                <div className="col-md-6 mb-3">
+                  <h6 className="text-muted mb-2">Publisher</h6>
+                  <p className="mb-0">{book.publisher}</p>
+                </div>
+              )}
+              {book.isbn && (
+                <div className="col-md-6 mb-3">
+                  <h6 className="text-muted mb-2">ISBN</h6>
+                  <p className="mb-0">
+                    <code>{book.isbn}</code>
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
