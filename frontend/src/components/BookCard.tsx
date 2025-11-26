@@ -278,18 +278,20 @@ const BookCard: React.FC<BookCardProps> = ({ book, onToggleFavorite, isFavorite 
                   {book.rating}
                 </span>
               </div>
-              <span style={{
-                background: 'var(--bg-tertiary)',
-                color: 'var(--text-secondary)',
-                padding: 'clamp(0.25rem, 0.8vw, 0.35rem) clamp(0.75rem, 1.8vw, 1rem)',
-                borderRadius: '8px',
-                fontSize: 'clamp(0.7rem, 1.6vw, 0.8rem)',
-                fontWeight: '700',
-                whiteSpace: 'nowrap',
-                flexShrink: '0'
-              }}>
-                {book.genre}
-              </span>
+              {(book.genre || (book.genres && book.genres[0])) && (
+                <span style={{
+                  background: 'var(--bg-tertiary)',
+                  color: 'var(--text-secondary)',
+                  padding: 'clamp(0.25rem, 0.8vw, 0.35rem) clamp(0.75rem, 1.8vw, 1rem)',
+                  borderRadius: '8px',
+                  fontSize: 'clamp(0.7rem, 1.6vw, 0.8rem)',
+                  fontWeight: '700',
+                  whiteSpace: 'nowrap',
+                  flexShrink: '0'
+                }}>
+                  {book.genre || (book.genres && book.genres[0])}
+                </span>
+              )}
             </div>
 
             {/* Description */}
