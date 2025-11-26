@@ -1,6 +1,6 @@
 import { db } from '../config/firebase.js';
 import logger from '../utils/logger.js';
-import pool from '../config/database.js';
+import pool, { syncToPostgres, deleteFromPostgres } from '../config/database.js';
 
 const addFavorite = async (userId, bookId) => {
   try {
@@ -14,7 +14,7 @@ const addFavorite = async (userId, bookId) => {
       throw new Error('Favorite already exists');
     }
 
-    // Add new favorite
+    // Add new favorite to Firebase
     const favoriteData = {
       userId,
       bookId,
@@ -22,6 +22,23 @@ const addFavorite = async (userId, bookId) => {
     };
 
     const docRef = await db.collection('favorites').add(favoriteData);
+
+    // Sync to PostgreSQL in background (don't fail if it errors)
+    const postgresData = {
+      user_id: userId,
+      book_id: bookId,
+      created_at: favoriteData.createdAt
+    };
+
+    // Use a composite key for favorites (user_id, book_id)
+    pool.query(`
+      INSERT INTO favorites (user_id, book_id, created_at)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (user_id, book_id) DO NOTHING
+    `, [postgresData.user_id, postgresData.book_id, postgresData.created_at])
+      .catch(err => {
+        logger.warn('Failed to sync favorite to PostgreSQL:', err.message);
+      });
 
     return {
       id: docRef.id,
@@ -46,12 +63,21 @@ const removeFavorite = async (userId, bookId) => {
       return null;
     }
 
-    // Delete all matching favorites (should only be one)
+    // Delete all matching favorites from Firebase (should only be one)
     const batch = db.batch();
     snapshot.docs.forEach(doc => {
       batch.delete(doc.ref);
     });
     await batch.commit();
+
+    // Delete from PostgreSQL in background (don't fail if it errors)
+    pool.query(`
+      DELETE FROM favorites
+      WHERE user_id = $1 AND book_id = $2
+    `, [userId, bookId])
+      .catch(err => {
+        logger.warn('Failed to delete favorite from PostgreSQL:', err.message);
+      });
 
     return { success: true };
   } catch (error) {

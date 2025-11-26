@@ -1,5 +1,6 @@
-import pool from '../config/database.js';
+import { syncToPostgres, deleteFromPostgres } from '../config/database.js';
 import { db } from '../config/firebase.js';
+import logger from '../utils/logger.js';
 
 const getAllBooks = async (filters = {}) => {
   try {
@@ -75,7 +76,7 @@ const getBookById = async (bookId) => {
     // Fetch from Firebase Firestore
     const doc = await db.collection('books').doc(bookId).get();
 
-    if (result.rows.length === 0) {
+    if (!doc.exists) {
       return null;
     }
 
@@ -107,75 +108,87 @@ const getBookById = async (bookId) => {
 
 const createBook = async (bookData, userId = null) => {
   try {
+    // Check for duplicates in Firebase
     if (bookData.isbn) {
-      const isbnCheck = await pool.query(`
-        SELECT id FROM books WHERE isbn = $1
-      `, [bookData.isbn]);
+      const isbnSnapshot = await db.collection('books')
+        .where('isbn', '==', bookData.isbn)
+        .limit(1)
+        .get();
 
-      if (isbnCheck.rows.length > 0) {
+      if (!isbnSnapshot.empty) {
+        const existingDoc = isbnSnapshot.docs[0];
         const error = new Error(`Book with ISBN ${bookData.isbn} already exists`);
         error.statusCode = 409;
-        error.existingBook = await getBookById(isbnCheck.rows[0].id);
+        error.existingBook = await getBookById(existingDoc.id);
         throw error;
       }
     }
 
     const titleLower = bookData.title.toLowerCase();
-    const duplicateCheck = await pool.query(`
-      SELECT id FROM books WHERE title_lower = $1 AND author = $2
-    `, [titleLower, bookData.author]);
+    const duplicateSnapshot = await db.collection('books')
+      .where('title', '==', bookData.title)
+      .where('author', '==', bookData.author)
+      .limit(1)
+      .get();
 
-    if (duplicateCheck.rows.length > 0) {
+    if (!duplicateSnapshot.empty) {
+      const existingDoc = duplicateSnapshot.docs[0];
       const error = new Error(`Book "${bookData.title}" by ${bookData.author} already exists`);
       error.statusCode = 409;
-      error.existingBook = await getBookById(duplicateCheck.rows[0].id);
+      error.existingBook = await getBookById(existingDoc.id);
       throw error;
     }
 
-    const result = await pool.query(`
-      INSERT INTO books (
-        title, title_lower, author, isbn, description, cover_image,
-        published_year, publisher, page_count, language, genres,
-        rating, total_ratings, created_by, is_user_generated
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-      RETURNING *
-    `, [
-      bookData.title,
-      titleLower,
-      bookData.author,
-      bookData.isbn || null,
-      bookData.description || null,
-      bookData.coverImage || null,
-      bookData.publishedYear || null,
-      bookData.publisher || null,
-      bookData.pageCount || null,
-      bookData.language || 'en',
-      bookData.genres || [],
-      bookData.rating || 0,
-      bookData.totalRatings || 0,
-      userId,
-      !!userId
-    ]);
+    // Create book in Firebase (primary database)
+    const newBook = {
+      title: bookData.title,
+      author: bookData.author,
+      isbn: bookData.isbn || null,
+      description: bookData.description || null,
+      coverImage: bookData.coverImage || null,
+      publishedYear: bookData.publishedYear || null,
+      publisher: bookData.publisher || null,
+      pageCount: bookData.pageCount || null,
+      language: bookData.language || 'en',
+      genres: bookData.genres || [],
+      rating: bookData.rating || 0,
+      totalRatings: bookData.totalRatings || 0,
+      createdBy: userId,
+      isUserGenerated: !!userId,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
 
-    const book = result.rows[0];
+    const docRef = await db.collection('books').add(newBook);
+
+    // Sync to PostgreSQL in background (don't fail if it errors)
+    const postgresData = {
+      title: newBook.title,
+      title_lower: newBook.title.toLowerCase(),
+      author: newBook.author,
+      isbn: newBook.isbn,
+      description: newBook.description,
+      cover_image: newBook.coverImage,
+      published_year: newBook.publishedYear,
+      publisher: newBook.publisher,
+      page_count: newBook.pageCount,
+      language: newBook.language,
+      genres: newBook.genres,
+      rating: newBook.rating,
+      total_ratings: newBook.totalRatings,
+      created_by: newBook.createdBy,
+      is_user_generated: newBook.isUserGenerated,
+      created_at: newBook.createdAt,
+      updated_at: newBook.updatedAt
+    };
+
+    syncToPostgres('books', postgresData, 'isbn').catch(err => {
+      logger.warn('Failed to sync book to PostgreSQL:', err.message);
+    });
+
     return {
-      id: book.id.toString(),
-      title: book.title,
-      author: book.author,
-      isbn: book.isbn,
-      description: book.description,
-      coverImage: book.cover_image,
-      publishedYear: book.published_year,
-      publisher: book.publisher,
-      pageCount: book.page_count,
-      language: book.language,
-      genres: book.genres,
-      rating: parseFloat(book.rating),
-      totalRatings: book.total_ratings,
-      createdBy: book.created_by,
-      isUserGenerated: book.is_user_generated,
-      createdAt: book.created_at,
-      updatedAt: book.updated_at
+      id: docRef.id,
+      ...newBook
     };
   } catch (error) {
     console.error('Error creating book:', error);
@@ -185,79 +198,64 @@ const createBook = async (bookData, userId = null) => {
 
 const updateBook = async (bookId, updateData) => {
   try {
-    const updates = [];
-    const params = [];
-    let paramCount = 1;
+    // Check if book exists in Firebase
+    const docRef = db.collection('books').doc(bookId);
+    const doc = await docRef.get();
 
-    if (updateData.title) {
-      updates.push(`title = $${paramCount}`, `title_lower = $${paramCount + 1}`);
-      params.push(updateData.title, updateData.title.toLowerCase());
-      paramCount += 2;
-    }
-    if (updateData.author) {
-      updates.push(`author = $${paramCount}`);
-      params.push(updateData.author);
-      paramCount++;
-    }
-    if (updateData.isbn !== undefined) {
-      updates.push(`isbn = $${paramCount}`);
-      params.push(updateData.isbn);
-      paramCount++;
-    }
-    if (updateData.description !== undefined) {
-      updates.push(`description = $${paramCount}`);
-      params.push(updateData.description);
-      paramCount++;
-    }
-    if (updateData.coverImage !== undefined) {
-      updates.push(`cover_image = $${paramCount}`);
-      params.push(updateData.coverImage);
-      paramCount++;
-    }
-    if (updateData.publishedYear) {
-      updates.push(`published_year = $${paramCount}`);
-      params.push(updateData.publishedYear);
-      paramCount++;
-    }
-    if (updateData.publisher) {
-      updates.push(`publisher = $${paramCount}`);
-      params.push(updateData.publisher);
-      paramCount++;
-    }
-    if (updateData.pageCount) {
-      updates.push(`page_count = $${paramCount}`);
-      params.push(updateData.pageCount);
-      paramCount++;
-    }
-    if (updateData.language) {
-      updates.push(`language = $${paramCount}`);
-      params.push(updateData.language);
-      paramCount++;
-    }
-    if (updateData.genres) {
-      updates.push(`genres = $${paramCount}`);
-      params.push(updateData.genres);
-      paramCount++;
-    }
-
-    if (updates.length === 0) {
-      return await getBookById(bookId);
-    }
-
-    updates.push('updated_at = NOW()');
-    params.push(bookId);
-
-    const result = await pool.query(`
-      UPDATE books SET ${updates.join(', ')}
-      WHERE id = $${paramCount}
-      RETURNING *
-    `, params);
-
-    if (result.rows.length === 0) {
+    if (!doc.exists) {
       return null;
     }
 
-    return await getBookById(bookId);
+    // Build update object
+    const updates = {
+      updatedAt: new Date()
+    };
+
+    if (updateData.title !== undefined) updates.title = updateData.title;
+    if (updateData.author !== undefined) updates.author = updateData.author;
+    if (updateData.isbn !== undefined) updates.isbn = updateData.isbn;
+    if (updateData.description !== undefined) updates.description = updateData.description;
+    if (updateData.coverImage !== undefined) updates.coverImage = updateData.coverImage;
+    if (updateData.publishedYear !== undefined) updates.publishedYear = updateData.publishedYear;
+    if (updateData.publisher !== undefined) updates.publisher = updateData.publisher;
+    if (updateData.pageCount !== undefined) updates.pageCount = updateData.pageCount;
+    if (updateData.language !== undefined) updates.language = updateData.language;
+    if (updateData.genres !== undefined) updates.genres = updateData.genres;
+
+    // Update in Firebase
+    await docRef.update(updates);
+
+    // Get updated book
+    const updatedBook = await getBookById(bookId);
+
+    // Sync to PostgreSQL in background (don't fail if it errors)
+    if (updatedBook) {
+      const postgresData = {
+        title: updatedBook.title,
+        title_lower: updatedBook.title.toLowerCase(),
+        author: updatedBook.author,
+        isbn: updatedBook.isbn,
+        description: updatedBook.description,
+        cover_image: updatedBook.coverImage,
+        published_year: updatedBook.publishedYear,
+        publisher: updatedBook.publisher,
+        page_count: updatedBook.pageCount,
+        language: updatedBook.language,
+        genres: updatedBook.genres,
+        rating: updatedBook.rating,
+        total_ratings: updatedBook.totalRatings,
+        created_by: updatedBook.createdBy,
+        is_user_generated: updatedBook.isUserGenerated,
+        created_at: updatedBook.createdAt,
+        updated_at: updatedBook.updatedAt
+      };
+
+      syncToPostgres('books', postgresData, 'isbn').catch(err => {
+        logger.warn('Failed to sync updated book to PostgreSQL:', err.message);
+      });
+    }
+
+    return updatedBook;
   } catch (error) {
     console.error('Error updating book:', error);
     throw error;
@@ -266,12 +264,24 @@ const updateBook = async (bookId, updateData) => {
 
 const deleteBook = async (bookId) => {
   try {
-    const result = await pool.query(`
-      DELETE FROM books WHERE id = $1 RETURNING id
-    `, [bookId]);
+    // Check if book exists in Firebase
+    const docRef = db.collection('books').doc(bookId);
+    const doc = await docRef.get();
 
-    if (result.rows.length === 0) {
+    if (!doc.exists) {
       return null;
+    }
+
+    const bookData = doc.data();
+
+    // Delete from Firebase
+    await docRef.delete();
+
+    // Delete from PostgreSQL in background (don't fail if it errors)
+    if (bookData.isbn) {
+      deleteFromPostgres('books', bookData.isbn, 'isbn').catch(err => {
+        logger.warn('Failed to delete book from PostgreSQL:', err.message);
+      });
     }
 
     return { id: bookId, deleted: true };
@@ -304,50 +314,58 @@ const getBooksCount = async (filters = {}) => {
 
 const getUserBooks = async (userId, filters = {}) => {
   try {
-    let query = `
-      SELECT b.* FROM books b
-      INNER JOIN users u ON b.created_by = u.id
-      WHERE u.id = $1
-    `;
-    const params = [userId];
-    let paramCount = 2;
+    // Fetch from Firebase Firestore
+    let booksQuery = db.collection('books').where('createdBy', '==', userId);
 
+    // Apply sorting
+    const sortBy = filters.sortBy || 'createdAt';
+    const sortOrder = filters.sortOrder || 'desc';
+    booksQuery = booksQuery.orderBy(sortBy, sortOrder.toLowerCase());
+
+    // Apply limit
+    const limit = parseInt(filters.limit) || 20;
+    booksQuery = booksQuery.limit(limit);
+
+    const snapshot = await booksQuery.get();
+
+    let books = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        title: data.title || 'Untitled',
+        author: data.author || 'Unknown Author',
+        isbn: data.isbn || null,
+        description: data.description || null,
+        coverImage: data.coverImage || null,
+        publishedYear: data.publishedYear || null,
+        publisher: data.publisher || null,
+        pageCount: data.pageCount || null,
+        language: data.language || 'en',
+        genres: data.genres || [],
+        rating: parseFloat(data.rating) || 0,
+        totalRatings: data.totalRatings || 0,
+        createdBy: data.createdBy || null,
+        isUserGenerated: data.isUserGenerated || false,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt || new Date()),
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt || new Date())
+      };
+    });
+
+    // Apply search filter (client-side)
     if (filters.search) {
-      query += ` AND b.title_lower LIKE $${paramCount}`;
-      params.push(`%${filters.search.toLowerCase()}%`);
-      paramCount++;
+      const searchLower = filters.search.toLowerCase();
+      books = books.filter(book =>
+        book.title.toLowerCase().includes(searchLower)
+      );
     }
 
-    const sortBy = filters.sortBy || 'created_at';
-    const sortOrder = filters.sortOrder || 'DESC';
-    query += ` ORDER BY b.${sortBy} ${sortOrder}`;
-
-    const limit = parseInt(filters.limit) || 20;
+    // Apply offset
     const offset = parseInt(filters.offset) || 0;
-    query += ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-    params.push(limit, offset);
+    if (offset > 0) {
+      books = books.slice(offset);
+    }
 
-    const result = await pool.query(query, params);
-
-    return result.rows.map(book => ({
-      id: book.id.toString(),
-      title: book.title,
-      author: book.author,
-      isbn: book.isbn,
-      description: book.description,
-      coverImage: book.cover_image,
-      publishedYear: book.published_year,
-      publisher: book.publisher,
-      pageCount: book.page_count,
-      language: book.language,
-      genres: book.genres,
-      rating: parseFloat(book.rating),
-      totalRatings: book.total_ratings,
-      createdBy: book.created_by,
-      isUserGenerated: book.is_user_generated,
-      createdAt: book.created_at,
-      updatedAt: book.updated_at
-    }));
+    return books;
   } catch (error) {
     console.error('Error getting user books:', error);
     throw error;
@@ -356,22 +374,23 @@ const getUserBooks = async (userId, filters = {}) => {
 
 const getUserBooksCount = async (userId, filters = {}) => {
   try {
-    let query = `
-      SELECT COUNT(*) FROM books b
-      INNER JOIN users u ON b.created_by = u.id
-      WHERE u.id = $1
-    `;
-    const params = [userId];
-    let paramCount = 2;
+    // Fetch from Firebase Firestore
+    let booksQuery = db.collection('books').where('createdBy', '==', userId);
 
+    const snapshot = await booksQuery.get();
+    let count = snapshot.size;
+
+    // Apply search filter (client-side)
     if (filters.search) {
-      query += ` AND b.title_lower LIKE $${paramCount}`;
-      params.push(`%${filters.search.toLowerCase()}%`);
-      paramCount++;
+      const searchLower = filters.search.toLowerCase();
+      count = snapshot.docs.filter(doc => {
+        const data = doc.data();
+        const title = (data.title || '').toLowerCase();
+        return title.includes(searchLower);
+      }).length;
     }
 
-    const result = await pool.query(query, params);
-    return parseInt(result.rows[0].count);
+    return count;
   } catch (error) {
     console.error('Error getting user books count:', error);
     throw error;
