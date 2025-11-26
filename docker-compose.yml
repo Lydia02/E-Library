@@ -18,13 +18,6 @@ services:
     restart: unless-stopped
     networks:
       - elibrary-network
-    # Remove or comment out healthcheck for now
-    # healthcheck:
-    #   test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/health')"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
-    #   start_period: 40s
 
   frontend:
     image: ${ACR_LOGIN_SERVER}/elibrary-frontend:${IMAGE_TAG}
