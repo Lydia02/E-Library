@@ -1,26 +1,60 @@
-import pool from '../config/database.js';
+import { db } from '../config/firebase.js';
 
 const addUserBook = async (userId, bookId, status = 'to-read', progress = 0) => {
   try {
-    const result = await pool.query(`
-      INSERT INTO user_books (user_id, book_id, status, progress)
-      VALUES ($1, $2, $3, $4)
-      ON CONFLICT (user_id, book_id)
-      DO UPDATE SET status = $3, progress = $4, updated_at = NOW()
-      RETURNING id, status, progress, started_at, completed_at, created_at, updated_at
-    `, [userId, bookId, status, progress]);
+    // Check if user book already exists
+    const existingSnapshot = await db.collection('user_books')
+      .where('userId', '==', userId)
+      .where('bookId', '==', bookId)
+      .get();
 
-    return {
-      id: result.rows[0].id.toString(),
+    const now = new Date();
+    const userBookData = {
       userId,
       bookId,
-      status: result.rows[0].status,
-      progress: result.rows[0].progress,
-      startedAt: result.rows[0].started_at,
-      completedAt: result.rows[0].completed_at,
-      createdAt: result.rows[0].created_at,
-      updatedAt: result.rows[0].updated_at
+      status,
+      progress,
+      startedAt: status === 'reading' ? now : null,
+      completedAt: status === 'completed' ? now : null,
+      updatedAt: now
     };
+
+    if (!existingSnapshot.empty) {
+      // Update existing user book
+      const docRef = existingSnapshot.docs[0].ref;
+      await docRef.update(userBookData);
+
+      const updatedDoc = await docRef.get();
+      const data = updatedDoc.data();
+
+      return {
+        id: updatedDoc.id,
+        userId: data.userId,
+        bookId: data.bookId,
+        status: data.status,
+        progress: data.progress,
+        startedAt: data.startedAt?.toDate ? data.startedAt.toDate() : data.startedAt,
+        completedAt: data.completedAt?.toDate ? data.completedAt.toDate() : data.completedAt,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt
+      };
+    } else {
+      // Add new user book
+      userBookData.createdAt = now;
+      const docRef = await db.collection('user_books').add(userBookData);
+
+      return {
+        id: docRef.id,
+        userId,
+        bookId,
+        status,
+        progress,
+        startedAt: userBookData.startedAt,
+        completedAt: userBookData.completedAt,
+        createdAt: userBookData.createdAt,
+        updatedAt: userBookData.updatedAt
+      };
+    }
   } catch (error) {
     console.error('Error adding user book:', error);
     throw error;
@@ -29,65 +63,58 @@ const addUserBook = async (userId, bookId, status = 'to-read', progress = 0) => 
 
 const updateUserBook = async (userId, bookId, updates) => {
   try {
-    const setClause = [];
-    const params = [];
-    let paramCount = 1;
+    const snapshot = await db.collection('user_books')
+      .where('userId', '==', userId)
+      .where('bookId', '==', bookId)
+      .get();
+
+    if (snapshot.empty) {
+      return null;
+    }
+
+    const docRef = snapshot.docs[0].ref;
+    const updateData = {
+      updatedAt: new Date()
+    };
 
     if (updates.status !== undefined) {
-      setClause.push(`status = $` + paramCount);
-      params.push(updates.status);
-      paramCount++;
+      updateData.status = updates.status;
 
       if (updates.status === 'reading' && !updates.startedAt) {
-        setClause.push(`started_at = NOW()`);
+        updateData.startedAt = new Date();
       } else if (updates.status === 'completed' && !updates.completedAt) {
-        setClause.push(`completed_at = NOW()`, `progress = 100`);
+        updateData.completedAt = new Date();
+        updateData.progress = 100;
       }
     }
 
     if (updates.progress !== undefined) {
-      setClause.push(`progress = $` + paramCount);
-      params.push(updates.progress);
-      paramCount++;
+      updateData.progress = updates.progress;
     }
 
     if (updates.startedAt !== undefined) {
-      setClause.push(`started_at = $` + paramCount);
-      params.push(updates.startedAt);
-      paramCount++;
+      updateData.startedAt = updates.startedAt;
     }
 
     if (updates.completedAt !== undefined) {
-      setClause.push(`completed_at = $` + paramCount);
-      params.push(updates.completedAt);
-      paramCount++;
+      updateData.completedAt = updates.completedAt;
     }
 
-    setClause.push('updated_at = NOW()');
-    params.push(userId, bookId);
+    await docRef.update(updateData);
 
-    const result = await pool.query(`
-      UPDATE user_books
-      SET ` + setClause.join(', ') + `
-      WHERE user_id = $` + paramCount + ` AND book_id = $` + (paramCount + 1) + `
-      RETURNING *
-    `, params);
+    const updatedDoc = await docRef.get();
+    const data = updatedDoc.data();
 
-    if (result.rows.length === 0) {
-      return null;
-    }
-
-    const row = result.rows[0];
     return {
-      id: row.id.toString(),
-      userId: row.user_id,
-      bookId: row.book_id,
-      status: row.status,
-      progress: row.progress,
-      startedAt: row.started_at,
-      completedAt: row.completed_at,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
+      id: updatedDoc.id,
+      userId: data.userId,
+      bookId: data.bookId,
+      status: data.status,
+      progress: data.progress,
+      startedAt: data.startedAt?.toDate ? data.startedAt.toDate() : data.startedAt,
+      completedAt: data.completedAt?.toDate ? data.completedAt.toDate() : data.completedAt,
+      createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
+      updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt
     };
   } catch (error) {
     console.error('Error updating user book:', error);
@@ -97,54 +124,58 @@ const updateUserBook = async (userId, bookId, updates) => {
 
 const getUserBooks = async (userId, filters = {}) => {
   try {
-    let query = `
-      SELECT
-        ub.*,
-        b.title,
-        b.author,
-        b.cover_image,
-        b.page_count,
-        b.genres
-      FROM user_books ub
-      INNER JOIN books b ON ub.book_id = b.id
-      WHERE ub.user_id = $1
-    `;
-    const params = [userId];
-    let paramCount = 2;
+    let userBooksQuery = db.collection('user_books')
+      .where('userId', '==', userId);
 
     if (filters.status) {
-      query += ` AND ub.status = $` + paramCount;
-      params.push(filters.status);
-      paramCount++;
+      userBooksQuery = userBooksQuery.where('status', '==', filters.status);
     }
 
-    query += ` ORDER BY ub.updated_at DESC`;
+    userBooksQuery = userBooksQuery.orderBy('updatedAt', 'desc');
 
     const limit = parseInt(filters.limit) || 20;
-    const offset = parseInt(filters.offset) || 0;
-    query += ` LIMIT $` + paramCount + ` OFFSET $` + (paramCount + 1);
-    params.push(limit, offset);
+    userBooksQuery = userBooksQuery.limit(limit);
 
-    const result = await pool.query(query, params);
+    const userBooksSnapshot = await userBooksQuery.get();
 
-    return result.rows.map(row => ({
-      id: row.id.toString(),
-      bookId: row.book_id,
-      status: row.status,
-      progress: row.progress,
-      startedAt: row.started_at,
-      completedAt: row.completed_at,
-      book: {
-        id: row.book_id.toString(),
-        title: row.title,
-        author: row.author,
-        coverImage: row.cover_image,
-        pageCount: row.page_count,
-        genres: row.genres
-      },
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    }));
+    if (userBooksSnapshot.empty) {
+      return [];
+    }
+
+    // Get book details for each user book
+    const userBooks = await Promise.all(
+      userBooksSnapshot.docs.map(async (userBookDoc) => {
+        const userBookData = userBookDoc.data();
+        const bookDoc = await db.collection('books').doc(userBookData.bookId).get();
+
+        if (!bookDoc.exists) {
+          return null;
+        }
+
+        const bookData = bookDoc.data();
+        return {
+          id: userBookDoc.id,
+          bookId: bookDoc.id,
+          status: userBookData.status,
+          progress: userBookData.progress,
+          startedAt: userBookData.startedAt?.toDate ? userBookData.startedAt.toDate() : userBookData.startedAt,
+          completedAt: userBookData.completedAt?.toDate ? userBookData.completedAt.toDate() : userBookData.completedAt,
+          book: {
+            id: bookDoc.id,
+            title: bookData.title || 'Untitled',
+            author: bookData.author || 'Unknown Author',
+            coverImage: bookData.coverImage || null,
+            pageCount: bookData.pageCount || null,
+            genres: bookData.genres || []
+          },
+          createdAt: userBookData.createdAt?.toDate ? userBookData.createdAt.toDate() : userBookData.createdAt,
+          updatedAt: userBookData.updatedAt?.toDate ? userBookData.updatedAt.toDate() : userBookData.updatedAt
+        };
+      })
+    );
+
+    // Filter out null entries (books that don't exist)
+    return userBooks.filter(ub => ub !== null);
   } catch (error) {
     console.error('Error getting user books:', error);
     throw error;
@@ -153,18 +184,15 @@ const getUserBooks = async (userId, filters = {}) => {
 
 const getUserBooksCount = async (userId, filters = {}) => {
   try {
-    let query = 'SELECT COUNT(*) FROM user_books WHERE user_id = $1';
-    const params = [userId];
-    let paramCount = 2;
+    let userBooksQuery = db.collection('user_books')
+      .where('userId', '==', userId);
 
     if (filters.status) {
-      query += ` AND status = $` + paramCount;
-      params.push(filters.status);
-      paramCount++;
+      userBooksQuery = userBooksQuery.where('status', '==', filters.status);
     }
 
-    const result = await pool.query(query, params);
-    return parseInt(result.rows[0].count);
+    const snapshot = await userBooksQuery.get();
+    return snapshot.size;
   } catch (error) {
     console.error('Error getting user books count:', error);
     throw error;
@@ -173,15 +201,21 @@ const getUserBooksCount = async (userId, filters = {}) => {
 
 const removeUserBook = async (userId, bookId) => {
   try {
-    const result = await pool.query(`
-      DELETE FROM user_books
-      WHERE user_id = $1 AND book_id = $2
-      RETURNING id
-    `, [userId, bookId]);
+    const snapshot = await db.collection('user_books')
+      .where('userId', '==', userId)
+      .where('bookId', '==', bookId)
+      .get();
 
-    if (result.rows.length === 0) {
+    if (snapshot.empty) {
       return null;
     }
+
+    // Delete all matching user books (should only be one)
+    const batch = db.batch();
+    snapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
 
     return { success: true };
   } catch (error) {
