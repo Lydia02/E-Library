@@ -119,7 +119,7 @@ const BookCover: React.FC<BookCoverProps> = ({
           covers.push(`https://covers.openlibrary.org/b/isbn/${cleanIsbn}-S.jpg`);
         }
       } catch (error) {
-        console.log('Error fetching covers:', error);
+        // ignore cover fetch errors
       }
 
       setPossibleImages(covers);

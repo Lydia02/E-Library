@@ -1,11 +1,12 @@
 import pool from './src/config/database.js';
+import logger from './src/utils/logger.js';
 
-console.log('Testing Azure PostgreSQL Database Operations\n');
+// Test harness output suppressed (console.log removed)
 
 async function runTests() {
   try {
     const client = await pool.connect();
-    console.log('Test 1: Database Connection - PASSED\n');
+  // Test 1: Database Connection - PASSED
 
     // Test 2: Check all tables exist
     const tablesResult = await client.query(`
@@ -14,9 +15,7 @@ async function runTests() {
       WHERE table_schema = 'public'
       ORDER BY table_name
     `);
-    console.log('Test 2: Verify All Tables Exist - PASSED');
-    console.log('Tables found:', tablesResult.rows.map(r => r.table_name).join(', '));
-    console.log('');
+  // Test 2: Verify All Tables Exist - PASSED
 
     // Test 3: Insert a test user
     const userResult = await client.query(`
@@ -24,10 +23,8 @@ async function runTests() {
       VALUES ($1, $2, $3)
       RETURNING id, email, display_name, created_at
     `, ['test_uid_123', 'test@example.com', 'Test User']);
-    console.log('Test 3: Insert User - PASSED');
-    console.log('User ID:', userResult.rows[0].id);
-    const userId = userResult.rows[0].id;
-    console.log('');
+  // Test 3: Insert User - PASSED
+  const userId = userResult.rows[0].id;
 
     // Test 4: Insert a test book
     const bookResult = await client.query(`
@@ -53,10 +50,8 @@ async function runTests() {
       userId,
       true
     ]);
-    console.log('Test 4: Insert Book - PASSED');
-    console.log('Book ID:', bookResult.rows[0].id, '| Title:', bookResult.rows[0].title);
-    const bookId = bookResult.rows[0].id;
-    console.log('');
+  // Test 4: Insert Book - PASSED
+  const bookId = bookResult.rows[0].id;
 
     // Test 5: Add to favorites
     const favoriteResult = await client.query(`
@@ -64,9 +59,7 @@ async function runTests() {
       VALUES ($1, $2)
       RETURNING id
     `, [userId, bookId]);
-    console.log('Test 5: Insert Favorite - PASSED');
-    console.log('Favorite ID:', favoriteResult.rows[0].id);
-    console.log('');
+  // Test 5: Insert Favorite - PASSED
 
     // Test 6: Add a review
     const reviewResult = await client.query(`
@@ -74,9 +67,7 @@ async function runTests() {
       VALUES ($1, $2, $3, $4)
       RETURNING id, rating
     `, [userId, bookId, 5, 'Excellent test book!']);
-    console.log('Test 6: Insert Review - PASSED');
-    console.log('Review ID:', reviewResult.rows[0].id, '| Rating:', reviewResult.rows[0].rating);
-    console.log('');
+  // Test 6: Insert Review - PASSED
 
     // Test 7: Check if book rating was auto-updated by trigger
     const updatedBookResult = await client.query(`
@@ -84,9 +75,7 @@ async function runTests() {
       FROM books
       WHERE id = $1
     `, [bookId]);
-    console.log('Test 7: Auto-Update Trigger (Book Rating) - PASSED');
-    console.log('Book Rating:', updatedBookResult.rows[0].rating, '| Total Ratings:', updatedBookResult.rows[0].total_ratings);
-    console.log('');
+  // Test 7: Auto-Update Trigger (Book Rating) - PASSED
 
     // Test 8: Add to user_books (reading progress)
     const userBookResult = await client.query(`
@@ -94,9 +83,7 @@ async function runTests() {
       VALUES ($1, $2, $3, $4)
       RETURNING id, status, progress
     `, [userId, bookId, 'reading', 45]);
-    console.log('Test 8: Insert User Book (Reading Progress) - PASSED');
-    console.log('User Book ID:', userBookResult.rows[0].id, '| Status:', userBookResult.rows[0].status, '| Progress:', userBookResult.rows[0].progress + '%');
-    console.log('');
+  // Test 8: Insert User Book (Reading Progress) - PASSED
 
     // Test 9: Query with JOIN
     const joinResult = await client.query(`
@@ -110,9 +97,7 @@ async function runTests() {
       JOIN books b ON f.book_id = b.id
       WHERE u.id = $1
     `, [userId]);
-    console.log('Test 9: JOIN Query (User Favorites) - PASSED');
-    console.log('User:', joinResult.rows[0].display_name, '| Favorite Book:', joinResult.rows[0].title);
-    console.log('');
+  // Test 9: JOIN Query (User Favorites) - PASSED
 
     // Test 10: Text search
     const searchResult = await client.query(`
@@ -120,9 +105,7 @@ async function runTests() {
       FROM books
       WHERE title_lower LIKE $1
     `, ['%test%']);
-    console.log('Test 10: Case-Insensitive Search - PASSED');
-    console.log('Found', searchResult.rows.length, 'book(s) matching "test"');
-    console.log('');
+  // Test 10: Case-Insensitive Search - PASSED
 
     // Test 11: Array operations
     const genreResult = await client.query(`
@@ -130,9 +113,7 @@ async function runTests() {
       FROM books
       WHERE 'Fiction' = ANY(genres)
     `);
-    console.log('Test 11: Array Query (Search by Genre) - PASSED');
-    console.log('Found', genreResult.rows.length, 'book(s) with genre "Fiction"');
-    console.log('');
+  // Test 11: Array Query (Search by Genre) - PASSED
 
     // Clean up test data
     await client.query('DELETE FROM reviews WHERE user_id = $1', [userId]);
@@ -143,11 +124,10 @@ async function runTests() {
 
     client.release();
 
-    console.log('All 11 Tests Passed! Azure PostgreSQL is fully functional.\n');
-
-    process.exit(0);
+  // All tests passed (output suppressed)
+  process.exit(0);
   } catch (error) {
-    console.error('Test Failed:', error.message);
+    logger.error('Test Failed:', error.message);
     process.exit(1);
   }
 }

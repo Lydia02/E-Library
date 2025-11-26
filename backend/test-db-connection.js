@@ -4,16 +4,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-console.log('🔍 PostgreSQL Connection Diagnostics');
-console.log('=====================================\n');
-
-console.log('📋 Configuration:');
-console.log('  Host:', process.env.DB_HOST);
-console.log('  Port:', process.env.DB_PORT || 5432);
-console.log('  Database:', process.env.DB_NAME);
-console.log('  User:', process.env.DB_USER);
-console.log('  Password:', process.env.DB_PASSWORD ? '****' + process.env.DB_PASSWORD.slice(-4) : 'NOT SET');
-console.log('');
+// PostgreSQL Connection Diagnostics (informational console output suppressed)
 
 const client = new Client({
   host: process.env.DB_HOST,
@@ -27,27 +18,21 @@ const client = new Client({
   connectionTimeoutMillis: 10000,
 });
 
-console.log('🔌 Attempting connection...');
-console.log('⏱️  Timeout set to 10 seconds\n');
+// Attempting connection (logs suppressed)
 
 client.connect()
   .then(async () => {
-    console.log('✅ Successfully connected to PostgreSQL!');
-    console.log('');
+  // Successfully connected (logs suppressed)
 
     // Test query
     const result = await client.query('SELECT NOW() as current_time, version() as pg_version');
-    console.log('📊 Database Info:');
-    console.log('  Current Time:', result.rows[0].current_time);
-    console.log('  PostgreSQL Version:', result.rows[0].pg_version.split('\n')[0]);
-    console.log('');
+  // Database info obtained (logs suppressed)
 
     // Check database size
     const dbSize = await client.query(`
       SELECT pg_size_pretty(pg_database_size($1)) as size
     `, [process.env.DB_NAME]);
-    console.log('  Database Size:', dbSize.rows[0].size);
-    console.log('');
+  // Database size obtained (logs suppressed)
 
     // List tables
     const tables = await client.query(`
@@ -57,19 +42,11 @@ client.connect()
       ORDER BY tablename
     `);
 
-    console.log('📋 Tables in database:');
-    if (tables.rows.length === 0) {
-      console.log('  (No tables found - database is empty)');
-    } else {
-      tables.rows.forEach(row => {
-        console.log('  -', row.tablename);
-      });
-    }
-    console.log('');
+    // Tables in database (output suppressed)
 
     await client.end();
-    console.log('✨ Connection test completed successfully!');
-    process.exit(0);
+  // Connection test completed
+  process.exit(0);
   })
   .catch(err => {
     console.error('❌ Connection failed!\n');
