@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import BookCard from '../components/BookCard';
 import type { Book, UserStats } from '../types';
+import { API_ENDPOINTS } from '../config/api';
 
 const DashboardPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -49,7 +50,7 @@ const DashboardPage: React.FC = () => {
   const fetchRecommendations = async () => {
     try {
       // Fetch some books for recommendations
-      const response = await fetch('https://summative-a-react-discovery-app-lydia02.onrender.com/api/books?limit=6');
+      const response = await fetch('API_ENDPOINTS.BOOKS?limit=6');
       if (response.ok) {
         const data = await response.json();
         // The API returns books in data.data.books structure

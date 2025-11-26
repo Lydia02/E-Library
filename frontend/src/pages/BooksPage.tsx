@@ -8,6 +8,7 @@ import {
   resetFilters,
 } from '../redux/filterSlice';
 import BookCard from '../components/BookCard';
+import { API_ENDPOINTS } from '../config/api';
 import type { Book } from '../types';
 import FavoritesService from '../services/favoritesService';
 import { useAuth } from '../contexts/AuthContext';
@@ -39,7 +40,7 @@ const BooksPage: React.FC = () => {
     setLoading(true);
     try {
       // Fetch books from the real API
-      const response = await fetch('https://summative-a-react-discovery-app-lydia02.onrender.com/api/books');
+      const response = await fetch('API_ENDPOINTS.BOOKS');
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
