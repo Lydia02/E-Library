@@ -208,39 +208,69 @@ const getUserBooks = async (userId, filters = {}) => {
     }
 
     // Get book details for each user book
-    const userBooks = await Promise.all(
-      userBooksSnapshot.docs.map(async (userBookDoc) => {
-        const userBookData = userBookDoc.data();
-        const bookDoc = await db.collection('books').doc(userBookData.bookId).get();
+    const userBooks = userBooksSnapshot.docs.map((userBookDoc) => {
+      const userBookData = userBookDoc.data();
 
-        if (!bookDoc.exists) {
-          return null;
-        }
-
-        const bookData = bookDoc.data();
+      // Check if this is a custom book (bookId is null or doesn't exist)
+      if (!userBookData.bookId || userBookData.isCustomBook) {
+        // Return custom book data directly from user_books collection
         return {
           id: userBookDoc.id,
-          bookId: bookDoc.id,
+          bookId: null,
           status: userBookData.status,
-          progress: userBookData.progress,
-          startedAt: userBookData.startedAt?.toDate ? userBookData.startedAt.toDate() : userBookData.startedAt,
-          completedAt: userBookData.completedAt?.toDate ? userBookData.completedAt.toDate() : userBookData.completedAt,
+          progress: userBookData.progress || 0,
+          personalRating: userBookData.personalRating || null,
+          personalReview: userBookData.personalReview || null,
+          dateStarted: userBookData.dateStarted?.toDate ? userBookData.dateStarted.toDate() : userBookData.dateStarted,
+          dateFinished: userBookData.dateFinished?.toDate ? userBookData.dateFinished.toDate() : userBookData.dateFinished,
           book: {
-            id: bookDoc.id,
-            title: bookData.title || 'Untitled',
-            author: bookData.author || 'Unknown Author',
-            coverImage: bookData.coverImage || null,
-            pageCount: bookData.pageCount || null,
-            genres: bookData.genres || []
+            id: userBookDoc.id,
+            title: userBookData.title || 'Untitled',
+            author: userBookData.author || 'Unknown Author',
+            coverImage: userBookData.coverImage || null,
+            isbn: userBookData.isbn || null,
+            genre: userBookData.genre || null,
+            pages: userBookData.pages || null,
+            pageCount: userBookData.pages || null,
+            description: userBookData.description || null,
+            publicationDate: userBookData.publicationDate || null,
+            genres: userBookData.genre ? [userBookData.genre] : []
           },
           createdAt: userBookData.createdAt?.toDate ? userBookData.createdAt.toDate() : userBookData.createdAt,
           updatedAt: userBookData.updatedAt?.toDate ? userBookData.updatedAt.toDate() : userBookData.updatedAt
         };
-      })
-    );
+      }
 
-    // Filter out null entries (books that don't exist)
-    return userBooks.filter(ub => ub !== null);
+      // For books linked to the main catalog, we'll just return the user book data
+      // (not fetching from books collection to avoid extra queries and potential missing books)
+      return {
+        id: userBookDoc.id,
+        bookId: userBookData.bookId,
+        status: userBookData.status,
+        progress: userBookData.progress || 0,
+        personalRating: userBookData.personalRating || null,
+        personalReview: userBookData.personalReview || null,
+        dateStarted: userBookData.dateStarted?.toDate ? userBookData.dateStarted.toDate() : userBookData.dateStarted,
+        dateFinished: userBookData.dateFinished?.toDate ? userBookData.dateFinished.toDate() : userBookData.dateFinished,
+        book: {
+          id: userBookData.bookId,
+          title: userBookData.title || 'Untitled',
+          author: userBookData.author || 'Unknown Author',
+          coverImage: userBookData.coverImage || null,
+          isbn: userBookData.isbn || null,
+          genre: userBookData.genre || null,
+          pages: userBookData.pages || null,
+          pageCount: userBookData.pages || null,
+          description: userBookData.description || null,
+          publicationDate: userBookData.publicationDate || null,
+          genres: userBookData.genre ? [userBookData.genre] : []
+        },
+        createdAt: userBookData.createdAt?.toDate ? userBookData.createdAt.toDate() : userBookData.createdAt,
+        updatedAt: userBookData.updatedAt?.toDate ? userBookData.updatedAt.toDate() : userBookData.updatedAt
+      };
+    });
+
+    return userBooks;
   } catch (error) {
     console.error('Error getting user books:', error);
     throw error;

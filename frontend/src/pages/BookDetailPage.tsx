@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import type { Book } from '../types';
 import { API_ENDPOINTS } from '../config/api';
+import BookCover from '../components/BookCover';
 
 const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -10,7 +11,6 @@ const BookDetailPage: React.FC = () => {
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [imageError, setImageError] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [hasRated, setHasRated] = useState(false);
@@ -202,27 +202,15 @@ const BookDetailPage: React.FC = () => {
         {/* Book Cover */}
         <div className="col-lg-4 mb-4">
           <div className="card border-0 shadow-lg">
-            <div className="position-relative">
-              {!imageError ? (
-                <img
-                  src={book.coverImage || book.coverUrl}
-                  className="card-img-top"
-                  alt={book.title}
-                  onError={() => setImageError(true)}
-                  style={{ height: '600px', objectFit: 'cover' }}
-                />
-              ) : (
-                <div
-                  className="d-flex align-items-center justify-content-center"
-                  style={{
-                    height: '600px',
-                    background: 'var(--gradient-primary)',
-                  }}
-                >
-                  <i className="bi bi-book text-white" style={{ fontSize: '8rem', opacity: 0.5 }}></i>
-                </div>
-              )}
-            </div>
+            <BookCover
+              title={book.title}
+              author={book.author}
+              isbn={book.isbn || undefined}
+              customCoverUrl={book.coverImage || book.coverUrl || undefined}
+              genre={(book.genre || (book.genres && book.genres[0])) || undefined}
+              className="card-img-top"
+              style={{ height: '600px', objectFit: 'cover' }}
+            />
           </div>
 
           {/* Action Buttons */}
