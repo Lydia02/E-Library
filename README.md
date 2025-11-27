@@ -43,60 +43,353 @@ Users can explore available books, view details (author, category, publication d
 
 ## Technology Stack
 
-- *Frontend*: React 18, TypeScript, Vite, Redux Toolkit
-- *Backend*: Node.js 20+, Express 5.1.0, ES6 Modules
-- *Database*: Firebase Firestore (NoSQL)
-- *Authentication*: Firebase Authentication
-- *Styling*: CSS3, Responsive Design
-- *Version Control*: Git, GitHub
-- *DevOps*: GitHub Projects, Branch Protection, CI/CD (planned)
+- **Frontend**: React 18, TypeScript, Vite, Bootstrap 5
+- **Backend**: Node.js 20+, Express 5.1.0, ES6 Modules
+- **Database**:
+  - **Primary**: Firebase Firestore (NoSQL) - Real-time data sync
+  - **Secondary**: Azure PostgreSQL (v15.14) - Backup & analytics
+- **Authentication**: Firebase Authentication (JWT-based)
+- **Image Storage**:
+  - Open Library API (book covers by ISBN)
+  - Google Books API (book metadata & thumbnails)
+  - Firebase Storage (user-uploaded images)
+- **Styling**: CSS3, Bootstrap 5, Responsive Design
+- **Version Control**: Git, GitHub
+- **DevOps**: GitHub Actions, Docker, Terraform, Ansible
+
+---
 
 ##  Architecture Overview
 
 ![E-Library Architecture](./e-library-architecture.svg)
 
+### Complete System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                           USERS / CLIENTS                            │
+│                         (Web Browsers)                               │
+└────────────────────────────────┬────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    AZURE CLOUD INFRASTRUCTURE                        │
+│                                                                      │
+│  ┌────────────────────────────────────────────────────────────┐    │
+│  │  Network Security Group (NSG)                               │    │
+│  │  Allowed Ports: 22 (SSH), 3000 (Frontend), 5000 (Backend)  │    │
+│  └──────────────────────────┬─────────────────────────────────┘    │
+│                             │                                        │
+│                             ▼                                        │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │         Azure VM (Bastion Host) - 52.176.217.99              │  │
+│  │         Ubuntu 22.04 LTS | 2 vCPUs | 8GB RAM                 │  │
+│  │                                                               │  │
+│  │  ┌────────────────────────────────────────────────────────┐ │  │
+│  │  │           Docker Compose Environment                    │ │  │
+│  │  │                                                          │ │  │
+│  │  │  ┌──────────────────────────────────────────────────┐  │ │  │
+│  │  │  │  Frontend Container (Port 3000)                   │  │ │  │
+│  │  │  │  ┌─────────────────────────────────────────────┐ │  │ │  │
+│  │  │  │  │ React 18 + TypeScript                       │ │  │ │  │
+│  │  │  │  │ ├─ Components (BookCard, BookCover)         │ │  │ │  │
+│  │  │  │  │ ├─ Pages (Browse, Library, Dashboard)       │ │  │ │  │
+│  │  │  │  │ ├─ Services (API clients, Auth)             │ │  │ │  │
+│  │  │  │  │ └─ Smart Image Loading:                     │ │  │ │  │
+│  │  │  │  │    1. Firebase coverImage URL               │ │  │ │  │
+│  │  │  │  │    2. Open Library API (ISBN)               │ │  │ │  │
+│  │  │  │  │    3. Google Books API (title/author)       │ │  │ │  │
+│  │  │  │  │    4. SVG Fallback (generated)              │ │  │ │  │
+│  │  │  │  └─────────────────────────────────────────────┘ │  │ │  │
+│  │  │  │  Built with: Vite, Bootstrap 5                  │  │ │  │
+│  │  │  └──────────────────┬───────────────────────────────┘  │ │  │
+│  │  │                     │ REST API                          │ │  │
+│  │  │                     ▼                                   │ │  │
+│  │  │  ┌──────────────────────────────────────────────────┐  │ │  │
+│  │  │  │  Backend Container (Port 5000)                    │  │ │  │
+│  │  │  │  ┌─────────────────────────────────────────────┐ │  │ │  │
+│  │  │  │  │ Node.js 20 + Express 5                      │ │  │ │  │
+│  │  │  │  │ ├─ Controllers (Book, User, Favorites)      │ │  │ │  │
+│  │  │  │  │ ├─ Services (Business Logic)                │ │  │ │  │
+│  │  │  │  │ │  ├─ bookService.js                        │ │  │ │  │
+│  │  │  │  │ │  ├─ userBookService.js                    │ │  │ │  │
+│  │  │  │  │ │  ├─ favoriteService.js                    │ │  │ │  │
+│  │  │  │  │ │  └─ authService.js                        │ │  │ │  │
+│  │  │  │  │ ├─ Middleware (Auth, Error Handling)        │ │  │ │  │
+│  │  │  │  │ └─ Dual-Database Architecture:              │ │  │ │  │
+│  │  │  │  │    • Firebase (Primary) - Real-time         │ │  │ │  │
+│  │  │  │  │    • PostgreSQL (Secondary) - Analytics     │ │  │ │  │
+│  │  │  │  └─────────────────────────────────────────────┘ │  │ │  │
+│  │  │  └──────────────────┬───────────────────────────────┘  │ │  │
+│  │  └─────────────────────┼──────────────────────────────────┘ │  │
+│  └────────────────────────┼────────────────────────────────────┘  │
+│                           │                                        │
+└───────────────────────────┼────────────────────────────────────────┘
+                            │
+                ┌───────────┴────────────┐
+                │                        │
+                ▼                        ▼
+┌───────────────────────────┐  ┌──────────────────────────┐
+│   FIREBASE SERVICES       │  │  AZURE POSTGRESQL        │
+│   (Google Cloud)          │  │  (Secondary DB)          │
+│                           │  │                          │
+│  ┌─────────────────────┐ │  │  ┌────────────────────┐ │
+│  │ Firestore Database  │ │  │  │  PostgreSQL v15.14 │ │
+│  │ (PRIMARY)           │ │  │  │  • users           │ │
+│  │ Collections:        │ │  │  │  • books           │ │
+│  │ • users             │ │  │  │  • favorites       │ │
+│  │ • books             │ │  │  │  • user_books      │ │
+│  │ • favorites         │ │  │  │  • reviews         │ │
+│  │ • user_books        │ │  │  └────────────────────┘ │
+│  │ • reviews           │ │  │                          │
+│  │                     │ │  │  Background Sync:        │
+│  │ Indexes Required:   │ │  │  • Non-blocking writes   │
+│  │ ✓ favorites         │ │  │  • Analytics queries     │
+│  │   (userId + date)   │ │  │  • Backup storage        │
+│  │ ✓ user_books        │ │  └──────────────────────────┘
+│  │   (userId + status) │ │
+│  └─────────────────────┘ │
+│                           │
+│  ┌─────────────────────┐ │
+│  │ Authentication      │ │
+│  │ • Email/Password    │ │
+│  │ • JWT Tokens        │ │
+│  │ • User Management   │ │
+│  └─────────────────────┘ │
+│                           │
+│  ┌─────────────────────┐ │
+│  │ Storage (Optional)  │ │
+│  │ • User uploads      │ │
+│  │ • Book covers       │ │
+│  │ • Documents         │ │
+│  └─────────────────────┘ │
+└───────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│              EXTERNAL IMAGE APIS                             │
+│                                                              │
+│  ┌────────────────────┐  ┌────────────────────────────────┐│
+│  │ Open Library API   │  │  Google Books API              ││
+│  │ • Book covers      │  │  • Book metadata               ││
+│  │ • ISBN lookup      │  │  • Cover thumbnails            ││
+│  │ • Title search     │  │  • Author info                 ││
+│  │ • Free, no auth    │  │  • Free, no API key for images ││
+│  └────────────────────┘  └────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+```
+
 ### Infrastructure Components
 
 | Component | Technology | Details |
 |-----------|-----------|---------|
-| **Cloud Provider** | Microsoft Azure | Global cloud infrastructure |
-| **IaC Tool** | Terraform | Infrastructure provisioning |
-| **Container Registry** | Azure ACR | Private image repository |
-| **Compute** | Azure VM | Bastion host (Ubuntu 22.04) |
-| **Database** | Azure PostgreSQL | Managed database service (v15.14) |
-| **Authentication** | Firebase | Admin SDK integration |
-| **Configuration Mgmt** | Ansible | Automated deployment |
+| **Cloud Provider** | Microsoft Azure | East US region |
+| **IaC Tool** | Terraform | Infrastructure as Code |
+| **Container Registry** | Azure ACR | Private Docker images |
+| **Compute** | Azure VM | Ubuntu 22.04 (2 vCPUs, 8GB RAM) |
+| **Primary Database** | Firebase Firestore | NoSQL, real-time sync |
+| **Secondary Database** | Azure PostgreSQL | v15.14, managed service |
+| **Authentication** | Firebase Auth | JWT-based, Admin SDK |
+| **Image Sources** | Open Library + Google Books | External APIs |
+| **Storage** | Firebase Storage | User uploads (optional) |
+| **Configuration** | Ansible | Automated deployment |
 | **CI/CD** | GitHub Actions | Automated pipelines |
-| **Containerization** | Docker & Docker Compose | Application packaging |
+| **Containerization** | Docker + Compose | Multi-container orchestration |
 
 ---
 
 ##  Architecture Details
 
+### Data Flow
+
+#### 1. User Authentication Flow
+```
+User → Frontend → Firebase Auth → JWT Token → Backend → Firestore
+                                                       → PostgreSQL (sync)
+```
+
+#### 2. Book Browse Flow
+```
+User → Frontend → Backend API → Firestore (primary)
+                              → PostgreSQL (fallback)
+     ← Book Data ← Format & Return
+     → BookCover Component → Try sources in order:
+        1. Firebase coverImage URL
+        2. Open Library API (by ISBN)
+        3. Google Books API (by title/author)
+        4. SVG Fallback (generated)
+```
+
+#### 3. Add Book Flow (User Library)
+```
+User → Add Book Form → Frontend → Backend API
+                                 → Create in Firestore
+                                 → Sync to PostgreSQL (background)
+                                 ← Return book data
+     ← Success → Redirect to Library
+```
+
+#### 4. Favorites Flow
+```
+User → Click Heart Icon → Frontend → Backend API
+                                    → Check Firestore index
+                                    → Add to favorites collection
+                                    → Sync to PostgreSQL
+                                    ← Success
+     ← Update UI → Show in Favorites
+```
+
+### Database Schema
+
+#### Firestore Collections
+
+**users**
+- uid (string, primary key)
+- email (string)
+- displayName (string)
+- photoURL (string)
+- createdAt (timestamp)
+- updatedAt (timestamp)
+
+**books**
+- id (auto-generated)
+- title (string)
+- author (string)
+- isbn (string)
+- description (text)
+- coverImage (string, URL)
+- genres (array)
+- price (number)
+- publicationDate (date)
+- rating (number)
+- totalRatings (number)
+- createdAt (timestamp)
+
+**user_books** (Personal Library)
+- id (auto-generated)
+- userId (string, indexed)
+- bookId (string, nullable - null for custom books)
+- title (string)
+- author (string)
+- status (enum: 'to-read', 'currently-reading', 'read')
+- personalRating (number)
+- personalReview (text)
+- progress (number)
+- dateStarted (date)
+- dateFinished (date)
+- isCustomBook (boolean)
+- createdAt (timestamp)
+- updatedAt (timestamp, indexed)
+
+**favorites**
+- id (auto-generated)
+- userId (string, indexed)
+- bookId (string)
+- createdAt (timestamp, indexed)
+
+**Required Firestore Indexes:**
+1. Collection: `favorites`, Fields: `userId` (Asc) + `createdAt` (Desc)
+2. Collection: `user_books`, Fields: `userId` (Asc) + `updatedAt` (Desc)
+
+### Image Loading Strategy
+
+The BookCover component implements a **smart waterfall loading strategy**:
+
+```typescript
+1. Try Firebase coverImage URL (if exists in database)
+   ↓ (if fails or empty)
+2. Try Open Library by ISBN
+   → https://covers.openlibrary.org/b/isbn/{ISBN}-L.jpg
+   ↓ (if fails)
+3. Try Google Books API
+   → Search by title/author → Extract thumbnail URL
+   ↓ (if fails)
+4. Try Open Library by title
+   → https://covers.openlibrary.org/b/title/{title}-L.jpg
+   ↓ (if all fail)
+5. Generate SVG Fallback
+   → Beautiful gradient with book title and genre
+```
+
+**Benefits:**
+- ✅ No manual image uploads needed for most books
+- ✅ Automatic cover fetching for books with ISBN
+- ✅ Graceful fallback for custom/obscure books
+- ✅ No broken image icons
+- ✅ Professional appearance always maintained
+
+### Dual-Database Architecture
+
+**Why Two Databases?**
+
+1. **Firebase Firestore (Primary)**
+   - Real-time data synchronization
+   - Offline support
+   - Easy integration with Firebase Auth
+   - Fast reads/writes
+   - Auto-scaling
+
+2. **Azure PostgreSQL (Secondary)**
+   - Complex analytical queries
+   - Reporting and analytics
+   - Data backup
+   - Relational data integrity
+   - Business intelligence
+
+**Synchronization Strategy:**
+- All writes go to Firebase (primary)
+- Background sync to PostgreSQL (non-blocking)
+- If PostgreSQL sync fails → log warning, continue
+- PostgreSQL used for analytics only
+- No read queries depend on PostgreSQL sync
+
 ### Network Architecture
 ```
-Internet → NSG (Ports 3000, 5000, 22)
-    ↓
+Internet → Azure NSG (Firewall)
+    ↓ (Ports: 22, 3000, 5000)
 Bastion Host (52.176.217.99)
     ↓
-Docker Compose (Frontend + Backend)
-    ↓
-PostgreSQL Database + Firebase Auth
+Docker Compose Network
+    ├─ Frontend Container :3000
+    ├─ Backend Container :5000
+    └─ Internal Bridge Network
+         ↓
+External Services
+    ├─ Firebase (Primary DB + Auth)
+    ├─ Azure PostgreSQL (Secondary DB)
+    ├─ Open Library API (Images)
+    └─ Google Books API (Images)
 ```
+
+### Security Features
+
+- **Authentication**: Firebase JWT tokens
+- **Authorization**: Middleware checks on all protected routes
+- **Network**: Azure NSG with restricted ports
+- **Database**: Firebase security rules + PostgreSQL encryption
+- **Secrets**: Environment variables, never committed
+- **CORS**: Configured for frontend domain only
+- **Input Validation**: Backend validation on all inputs
 
 ### Application Stack
 
-**Frontend**
-- React 18 with modern hooks
-- Nginx web server
-- Responsive UI with Tailwind CSS
+**Frontend (React 18)**
+- Modern React hooks (useState, useEffect, useContext)
+- TypeScript for type safety
+- Bootstrap 5 for responsive UI
+- Axios for API calls
+- React Router for navigation
+- Context API for state management
+- Smart image loading with BookCover component
 - Port: 3000
 
-**Backend**
-- Node.js 20 with Express
+**Backend (Node.js 20 + Express)**
 - RESTful API design
-- PostgreSQL integration
+- Express 5.1.0 with ES6 modules
 - Firebase Admin SDK
+- PostgreSQL client (pg)
+- JWT authentication middleware
+- Error handling middleware
+- Dual-database service layer
 - Port: 5000
 
 **Database**
