@@ -96,7 +96,7 @@
       copy:
         dest: /opt/e-library/.env.example
         content: |
-          # E-Library Environment Configuration Template
+          # E-Library Environment Configuration
           # Values are injected from CI/CD pipeline via GitHub Secrets
           
           # Azure PostgreSQL Database
@@ -114,7 +114,7 @@
           # Azure Container Registry
           ACR_LOGIN_SERVER={{ acr_login_server }}
           
-          # SECURITY: Never commit real passwords to Git
+          # SECURITY
           # Use GitHub Secrets for CI/CD automation
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
