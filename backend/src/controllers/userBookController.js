@@ -134,7 +134,7 @@ const updateUserBook = async (req, res, next) => {
       }
     }
 
-    const userBook = await userBookService.updateUserBook(id, userId, {
+    const userBook = await userBookService.updateUserBookById(id, userId, {
       ...updates,
       updatedAt: new Date().toISOString()
     });
