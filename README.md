@@ -4,8 +4,6 @@
 
 A digital library platform that provides students and readers with easy access to educational materials anytime, anywhere.
 
-[![CI Pipeline](https://github.com/Lydia02/summative-a-react-discovery-app-Lydia02/actions/workflows/ci.yml/badge.svg)](https://github.com/Lydia02/summative-a-react-discovery-app-Lydia02/actions/workflows/ci.yml)
-[![CD Pipeline](https://github.com/Lydia02/summative-a-react-discovery-app-Lydia02/actions/workflows/cd-deploy.yml/badge.svg)](https://github.com/Lydia02/summative-a-react-discovery-app-Lydia02/actions/workflows/cd-deploy.yml)
 [![Security Scan](https://img.shields.io/badge/security-scanned-success)](https://github.com/Lydia02/summative-a-react-discovery-app-Lydia02/actions)
 
 > A complete DevOps pipeline implementing Git-to-Production workflow with Infrastructure as Code, automated security scanning, and continuous deployment.
@@ -22,6 +20,16 @@ By promoting open access and resource sharing, the e-Library supports digital le
 - *Lydia Subuola Ojoawo* - Full Stack Developer & Project Lead 
 - *Nadia Teta* - Frontend Developer & UI/UX Designer
 - *Ann Dumo Peter Lau* - Backend Developer & Database Administrator
+
+## Links
+
+- [Live frontend](http://52.176.217.99:3000)
+- [Live Backend](http://52.176.217.99:5000)
+- [Project Board](https://github.com/Lydia02/E-Library/projects)
+- [Repository](https://github.com/Lydia02/E-Library)
+- [Issues](https://github.com/Lydia02/E-Library/issues)
+- [Azure Portal](https://portal.azure.com)
+- [Project Demo Video]()
 
 ## Project Overview
 
@@ -309,13 +317,6 @@ The BookCover component implements a **smart waterfall loading strategy**:
 5. Generate SVG Fallback
    → Beautiful gradient with book title and genre
 ```
-
-**Benefits:**
-- ✅ No manual image uploads needed for most books
-- ✅ Automatic cover fetching for books with ISBN
-- ✅ Graceful fallback for custom/obscure books
-- ✅ No broken image icons
-- ✅ Professional appearance always maintained
 
 ### Dual-Database Architecture
 
@@ -967,23 +968,7 @@ E-Library/
 │   ├── tsconfig.json
 │   ├── tsconfig.node.json
 |   ├── vite.config.ts
-│   ├── vitest.config.ts
-│   │
-│   ├── BRANCH_01_README.md
-│   ├── BRANCH_02_README.md
-│   ├── BRANCH_03_README.md
-│   ├── BRANCH_04_README.md
-│   ├── BRANCH_06_README.md
-│   ├── BRANCH_07_README.md
-│   ├── BRANCH_08_README.md
-│   ├── BRANCH_09_README.md
-│   ├── BRANCH_10_README.md
-│   ├── BRANCH_11_README.md
-│   ├── BRANCH_12_README.md
-│   ├── BRANCH_13_README.md
-│   ├── BRANCH_14_README.md
-│   └── BRANCH_15_README.md
-│
+│   ├── vitest.config.ts│
 |
 ├── terraform
 │   ├── .terraform.lock.hcl
@@ -1000,58 +985,13 @@ E-Library/
 ├── .gitattributes
 ├── .gitignore
 ├── LICENSE
-├── MIGRATION_PLAN.md
 ├── README.md
 ├── package-lock.json
 ├── package.json
 └── docker-compose.yml
 ```
-
-## Links
-
-- [Live frontend](http://52.176.217.99:3000)
-- [Live Backend](http://52.176.217.99:5000)
-- [Project Board](https://github.com/Lydia02/E-Library/projects)
-- [Repository](https://github.com/Lydia02/E-Library)
-- [Issues](https://github.com/Lydia02/E-Library/issues)
-- [Azure Portal](https://portal.azure.com)
-- [Project Demo Video]()
-
-##  Documentation
-
-- [Terraform Docs](./terraform/README.md)
-- [Ansible Playbook Guide](./ansible/README.md)
-- [API Documentation](./backend/API.md)
-- [Frontend Components](./frontend/COMPONENTS.md)
-
 ---
-
-
 ## License
 
 MIT License
 
-**Academic Integrity**: All DevOps configuration files (Terraform, Ansible, GitHub Actions, Dockerfiles, docker-compose) were written by the team without AI assistance, in compliance with course policies.
-
----
-
-##  Course Information
-
-**Course**: Advanced DevOps  
-**Institution**: African Leadership University  
-**Project Type**: Summative Assessment  
-**Submission Date**: November 2025
-
----
-
-##  Acknowledgments
-
-- ALU DevOps instructors for guidance
-- Azure for cloud infrastructure
-- Open source community for tools and libraries
-
----
-
-**Last Updated**: November 26, 2025  
-**Version**: 1.0.0  
-**Status**: Production Ready 
