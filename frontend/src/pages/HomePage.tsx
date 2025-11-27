@@ -49,7 +49,7 @@ const HomePage: React.FC = () => {
                 marginBottom: '1.5rem',
                 letterSpacing: '-0.03em'
               }}>
-                Find Books
+              Find Books and Library 
                 <br />
                 That Actually
                 <span style={{
@@ -59,7 +59,7 @@ const HomePage: React.FC = () => {
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text'
                 }}>
-                  Matter
+                  Matter and Help!!!
                 </span>
               </h1>
               <p className="slide-in-left" style={{

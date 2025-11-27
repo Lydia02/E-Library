@@ -154,7 +154,7 @@ const BooksPage: React.FC = () => {
             color: 'var(--text-primary)',
             lineHeight: '1.1'
           }}>
-            Find Your Next
+            Identify  Your Next
             <span style={{
               display: 'block',
               background: 'var(--gradient-primary)',
@@ -162,7 +162,7 @@ const BooksPage: React.FC = () => {
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text'
             }}>
-              Favorite Book
+              Favorite Books!!!!
             </span>
           </h1>
           <p className="lead text-center" style={{ 
