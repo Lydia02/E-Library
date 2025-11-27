@@ -74,26 +74,26 @@ const DashboardPage: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        
-        const stats = data.data?.stats || {};
 
-        // Map the stats to the expected format
+        const stats = data.data?.stats || data.data || {};
+
+        // Map the stats to the expected format - backend returns readBooks, currentlyReading, toReadBooks
         const userStats: UserStats = {
-          totalBooksRead: stats.totalBooksRead || 0,
+          totalBooksRead: stats.readBooks || 0,
           currentlyReading: stats.currentlyReading || 0,
-          toRead: stats.toRead || 0,
-          toReadCount: stats.toRead || 0,
-          totalBooks: (stats.totalBooksRead || 0) + (stats.currentlyReading || 0) + (stats.toRead || 0),
+          toRead: stats.toReadBooks || 0,
+          toReadCount: stats.toReadBooks || 0,
+          totalBooks: stats.totalBooks || 0,
           favoriteGenres: stats.favoriteGenres || [],
           readingGoalProgress: {
             goal: 50,
-            current: stats.totalBooksRead || 0,
-            percentage: Math.round(((stats.totalBooksRead || 0) / 50) * 100)
+            current: stats.readBooks || 0,
+            percentage: Math.round(((stats.readBooks || 0) / 50) * 100)
           },
           averageRating: stats.averageRating || 0,
           booksAddedThisMonth: stats.booksAddedThisMonth || 0,
           currentStreak: 0,
-          totalPagesRead: 0,
+          totalPagesRead: stats.totalPages || 0,
           recentActivity: []
         };
 

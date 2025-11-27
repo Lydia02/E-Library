@@ -177,7 +177,6 @@ const BookCover: React.FC<BookCoverProps> = ({
         onClick={onClick}
         onError={handleImageError}
         onLoad={handleImageLoad}
-        crossOrigin="anonymous"
       />
     </div>
   );
