@@ -29,7 +29,7 @@ By promoting open access and resource sharing, the e-Library supports digital le
 - [Repository](https://github.com/Lydia02/E-Library)
 - [Issues](https://github.com/Lydia02/E-Library/issues)
 - [Azure Portal](https://portal.azure.com)
-- [Project Demo Video]()
+- [Project Demo Video](https://youtu.be/4bvcaJbDNbY)
 
 ## Project Overview
 
