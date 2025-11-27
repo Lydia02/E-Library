@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Book } from '../types';
+import BookCover from './BookCover';
 
 interface BookCardProps {
   book: Book;
@@ -10,114 +11,6 @@ interface BookCardProps {
 
 const BookCard: React.FC<BookCardProps> = ({ book, onToggleFavorite, isFavorite = false }) => {
   const [isHovered, setIsHovered] = useState(false);
-
-  // Helper function to safely encode SVG to base64
-  const encodeSvgToBase64 = (svgString: string): string => {
-    try {
-      // Use encodeURIComponent for Unicode support, then convert to base64
-      return btoa(unescape(encodeURIComponent(svgString)));
-    } catch {
-      // Fallback: use URL encoding if base64 fails
-      return encodeURIComponent(svgString);
-    }
-  };
-
-  // Generic book cover generator with warm colors
-  const getGenericBookCover = (title: string) => {
-    // Sanitize title to avoid encoding issues
-    // eslint-disable-next-line no-control-regex
-    const safeTitle = title.replace(/[^\x00-\x7F]/g, ''); // Remove non-ASCII characters
-
-    const covers = [
-      `data:image/svg+xml;base64,${encodeSvgToBase64(`
-        <svg width="200" height="300" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#ea580c;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <rect width="200" height="300" fill="url(#grad1)"/>
-          <text x="100" y="140" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white" opacity="0.9">
-            <tspan x="100" dy="0">&#128218;</tspan>
-            <tspan x="100" dy="30" font-size="12">${safeTitle.substring(0, 15)}</tspan>
-            ${safeTitle.length > 15 ? `<tspan x="100" dy="15" font-size="12">${safeTitle.substring(15, 30)}</tspan>` : ''}
-          </text>
-        </svg>
-      `)}`,
-
-      `data:image/svg+xml;base64,${encodeSvgToBase64(`
-        <svg width="200" height="300" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#991b1b;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <rect width="200" height="300" fill="url(#grad2)"/>
-          <text x="100" y="140" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white" opacity="0.9">
-            <tspan x="100" dy="0">&#128214;</tspan>
-            <tspan x="100" dy="30" font-size="12">${safeTitle.substring(0, 15)}</tspan>
-            ${safeTitle.length > 15 ? `<tspan x="100" dy="15" font-size="12">${safeTitle.substring(15, 30)}</tspan>` : ''}
-          </text>
-        </svg>
-      `)}`,
-
-      `data:image/svg+xml;base64,${encodeSvgToBase64(`
-        <svg width="200" height="300" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#d97706;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#ea580c;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <rect width="200" height="300" fill="url(#grad3)"/>
-          <text x="100" y="140" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white" opacity="0.9">
-            <tspan x="100" dy="0">&#128216;</tspan>
-            <tspan x="100" dy="30" font-size="12">${safeTitle.substring(0, 15)}</tspan>
-            ${safeTitle.length > 15 ? `<tspan x="100" dy="15" font-size="12">${safeTitle.substring(15, 30)}</tspan>` : ''}
-          </text>
-        </svg>
-      `)}`,
-
-      `data:image/svg+xml;base64,${encodeSvgToBase64(`
-        <svg width="200" height="300" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <rect width="200" height="300" fill="url(#grad4)"/>
-          <text x="100" y="140" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white" opacity="0.9">
-            <tspan x="100" dy="0">&#128215;</tspan>
-            <tspan x="100" dy="30" font-size="12">${safeTitle.substring(0, 15)}</tspan>
-            ${safeTitle.length > 15 ? `<tspan x="100" dy="15" font-size="12">${safeTitle.substring(15, 30)}</tspan>` : ''}
-          </text>
-        </svg>
-      `)}`,
-
-      `data:image/svg+xml;base64,${encodeSvgToBase64(`
-        <svg width="200" height="300" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <rect width="200" height="300" fill="url(#grad5)"/>
-          <text x="100" y="140" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white" opacity="0.9">
-            <tspan x="100" dy="0">&#128213;</tspan>
-            <tspan x="100" dy="30" font-size="12">${safeTitle.substring(0, 15)}</tspan>
-            ${safeTitle.length > 15 ? `<tspan x="100" dy="15" font-size="12">${safeTitle.substring(15, 30)}</tspan>` : ''}
-          </text>
-        </svg>
-      `)}`
-    ];
-
-    const index = (title.charCodeAt(0) || 0) % covers.length;
-    return covers[index];
-  };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -200,17 +93,12 @@ const BookCard: React.FC<BookCardProps> = ({ book, onToggleFavorite, isFavorite 
 
           {/* Book Cover */}
           <div className="position-relative overflow-hidden" style={{ height: '320px' }}>
-            <img
-              src={book.coverUrl || book.coverImage || getGenericBookCover(book.title)}
-              alt={book.title}
-              onError={(e) => {
-                // Swap to SVG fallback if remote image fails
-                try {
-                  (e.currentTarget as HTMLImageElement).src = getGenericBookCover(book.title);
-                } catch {
-                  // ignore
-                }
-              }}
+            <BookCover
+              title={book.title}
+              author={book.author}
+              isbn={book.isbn || undefined}
+              customCoverUrl={book.coverUrl || book.coverImage || undefined}
+              genre={(book.genre || (book.genres && book.genres[0])) || undefined}
               style={{
                 width: '100%',
                 height: '100%',
